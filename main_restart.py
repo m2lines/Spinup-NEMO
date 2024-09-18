@@ -95,7 +95,7 @@ if __name__ == "__main__":
     recordFullRestart(args.restart_path, args.radical, restart)
     recordPiecedRestart(args.restart_path, args.radical, restart)
 
-    print("""All done. Now you just need to : 
+    print("""All done. Now you just need to :
                 - Back transform the coordinates of the pieced restart files using ncks to the original version (see bash script xarray_to_CMIP.sh)
                 - Rename/Overwrite the "NEW_" restart files to their old version if you’re happy with them (see other bash script rewrite.sh)
                 - Point to the restart directory in your simulation config.card (if all your non-NEMO restart files are also in the restart_path directory, of course).
