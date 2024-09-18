@@ -78,7 +78,7 @@ class Simulation:
         x_size (int)                  : The size of the x dimension.
         z_size (int or None)          : The size of the z dimension, if available.
         shape (tuple)                 : The shape of the simulation data.
-        simulation (xarray.DataArray) : The loaded simulation data 
+        simulation (xarray.DataArray) : The loaded simulation data
     """
 
     def __init__(
@@ -296,7 +296,7 @@ class Simulation:
         Returns:
             (numpy.ndarray): The principal component map.
         """
-        map_ = np.zeros((np.product(self.shape)), dtype=float)
+        map_ = np.zeros((np.prod(self.shape)), dtype=float)
         map_[~self.bool_mask] = np.nan
         map_[self.bool_mask] = self.pca.components_[n]
         map_ = map_.reshape(self.shape)
