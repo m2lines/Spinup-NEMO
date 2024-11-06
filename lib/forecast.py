@@ -126,26 +126,24 @@ class Simulation:
         """
         grid = []
         for file in sorted(os.listdir(path)):
-            if term + "." in file:  # add param!=""
-                grid.append(path + "/" + file)
+            if term[1] in file: #add param!=""
+                grid.append(path+"/"+file)
         return grid
 
     def getAttributes(self):
         """
         Get attributes of the simulation data.
         """
-        array = xr.open_dataset(
-            self.files[-1], decode_times=False, chunks={"time": 200, "x": 120}
-        )
-        self.time_dim = list(array.dims)[0]
-        self.y_size = array.sizes["y"]
-        self.x_size = array.sizes["x"]
-        if "deptht" in array[self.term].dims:
-            self.z_size = array.sizes["deptht"]
-            self.shape = (self.z_size, self.y_size, self.x_size)
-        elif "olevel" in array[self.term].dims:
-            self.z_size = array.sizes["olevel"]
-            self.shape = (self.z_size, self.y_size, self.x_size)
+        array = xr.open_dataset(self.files[-1], decode_times=False,chunks={"time": 200, "x":120})
+        self.time_dim  = list(array.dims)[0]
+        self.y_size    = array.sizes['y']
+        self.x_size    = array.sizes['x']
+        if "deptht" in array[self.term[0]].dims:
+            self.z_size = array.sizes['deptht']
+            self.shape = (self.z_size,self.y_size,self.x_size)
+        elif "olevel" in array[self.term[0]].dims:
+            self.z_size = array.sizes['olevel']
+            self.shape = (self.z_size,self.y_size,self.x_size)
         else:
             self.z_size = None
             self.shape = (self.y_size, self.x_size)
@@ -180,10 +178,8 @@ class Simulation:
         Returns:
             (xarray.DataArray) : The loaded simulation data.
         """
-        array = xr.open_dataset(
-            file, decode_times=False, chunks={"time": 200, "x": 120}
-        )
-        array = array[self.term]
+        array = xr.open_dataset(file, decode_times=False,chunks={"time": 200, "x":120})
+        array = array[self.term[0]]
         self.len = self.len + array.sizes[self.time_dim]
         # print(self.len)
         # if self.ye:
@@ -232,8 +228,8 @@ class Simulation:
         Parameters:
             array (xarray.Dataset): The last dataset containing simulation data in the simulation file.
         """
-        array = array[self.term].values
-        n = np.shape(array)[0] // 12 * 12
+        array = array[self.term[0]].values
+        n = np.shape(array)[0]//12 *12
         array = array[-n:]
         ssca = np.array(array).reshape(
             (n // 12, 12) + self.shape
@@ -296,6 +292,7 @@ class Simulation:
         Returns:
             (numpy.ndarray): The principal component map.
         """
+        # map_ = np.zeros((np.product(self.shape)), dtype=float)
         map_ = np.zeros((np.prod(self.shape)), dtype=float)
         map_[~self.bool_mask] = np.nan
         map_[self.bool_mask] = self.pca.components_[n]
