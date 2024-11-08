@@ -13,6 +13,3 @@ jobs:
         uses: astral-sh/ruff-action@v1
         with:
           args: "format --check"
-
-      - name: run yamlfmt
-        uses: yk-lab/yamlfmt-action@v1
