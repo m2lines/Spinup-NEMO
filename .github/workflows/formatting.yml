@@ -14,10 +14,11 @@ jobs:
         with:
           args: "format --check"
 
-      - name: Find files excluding certain directories
+      - name: Find files excluding .png file type
         id: find_files
         run: |
-          FILES=$(find . -type f ! -path "./png/*" | tr '\n' ' ')
+          # Find all files excluding those with the .png extension and format as a space-separated list
+          FILES=$(find . -type f ! -name "*.png" | tr '\n' ' ')
           echo "FILES=$FILES" >> $GITHUB_ENV
 
       - name: Find Trailing Whitespace
