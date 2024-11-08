@@ -22,7 +22,7 @@ jobs:
 
       - name: Find Trailing Whitespace
         uses: harupy/find-trailing-whitespace@master
-        run:
+        run: |
           files: ${{ env.FILES }}
 
       - name: Install yamlfmt
