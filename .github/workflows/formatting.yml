@@ -1,0 +1,27 @@
+name: Formatting
+on: [push, pull_request]
+
+jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    name: Code Formatting and Trailing Whitespace Check
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Run Ruff for code formatting check
+        uses: astral-sh/ruff-action@v1
+        with:
+          args: "format --check"
+
+      - name: Find Trailing Whitespace
+        uses: harupy/find-trailing-whitespace@master
+
+      - name: Install yamlfmt
+        run: |
+          curl -sSLo /usr/local/bin/yamlfmt https://github.com/google/yamlfmt/releases/latest/download/yamlfmt-linux-amd64
+          chmod +x /usr/local/bin/yamlfmt
+
+      - name: Run yamlfmt check
+        run: |
+          yamlfmt -d .  # The `-d` flag checks formatting without making changes
