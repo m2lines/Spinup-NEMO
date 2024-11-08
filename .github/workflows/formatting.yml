@@ -14,12 +14,5 @@ jobs:
         with:
           args: "format --check"
 
-      - name: Install yamlfmt
-        run: |
-          mkdir -p ~/bin
-          curl -sSLo ~/bin/yamlfmt https://github.com/google/yamlfmt/releases/latest/download/yamlfmt-linux-amd64
-          chmod +x ~/bin/yamlfmt
-          echo "$HOME/bin" >> $GITHUB_PATH
-      - name: Run yamlfmt check
-        run: |
-          ~/bin/yamlfmt -lint .  # The `-d` flag checks formatting without making changes
+      - name: run yamlfmt
+        uses: yk-lab/yamlfmt-action@v1
