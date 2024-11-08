@@ -1,0 +1,21 @@
+name: Formatting
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    name: Code Formatting and Trailing Whitespace Check
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Run Ruff for code formatting check
+        uses: astral-sh/ruff-action@v1
+        with:
+          args: "format --check"
