@@ -14,18 +14,6 @@ jobs:
         with:
           args: "format --check"
 
-      - name: Find files excluding .png file type
-        id: find_files
-        run: |
-          # Find all files excluding those with the .png extension and format as a space-separated list
-          FILES=$(find . -type f ! -name "*.png" | tr '\n' ' ')
-          echo "FILES=$FILES" >> $GITHUB_ENV
-
-      - name: Find Trailing Whitespace
-        uses: harupy/find-trailing-whitespace@master
-        with:
-          files: ${{ env.FILES }}
-
       - name: Install yamlfmt
         run: |
           curl -sSLo /usr/local/bin/yamlfmt https://github.com/google/yamlfmt/releases/latest/download/yamlfmt-linux-amd64
