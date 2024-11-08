@@ -22,4 +22,4 @@ jobs:
           echo "$HOME/bin" >> $GITHUB_PATH
       - name: Run yamlfmt check
         run: |
-          yamlfmt -d .  # The `-d` flag checks formatting without making changes
+          ~/bin/yamlfmt -lint .  # The `-d` flag checks formatting without making changes
