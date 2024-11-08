@@ -17,7 +17,7 @@ jobs:
       - name: Find files excluding certain directories
         id: find_files
         run: |
-          FILES=$(find . -type f ! -path "./png/*" )
+          FILES=$(find . -type f ! -path "./png/*" | tr '\n' ' ')
           echo "FILES=$FILES" >> $GITHUB_ENV
 
       - name: Find Trailing Whitespace
