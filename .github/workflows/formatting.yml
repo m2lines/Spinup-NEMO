@@ -14,8 +14,16 @@ jobs:
         with:
           args: "format --check"
 
+      - name: Find files excluding certain directories
+        id: find_files
+        run: |
+          FILES=$(find . -type f ! -path "./png/*" )
+          echo "FILES=$FILES" >> $GITHUB_ENV
+
       - name: Find Trailing Whitespace
         uses: harupy/find-trailing-whitespace@master
+        run:
+          files: ${{ env.FILES }}
 
       - name: Install yamlfmt
         run: |
