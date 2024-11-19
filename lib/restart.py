@@ -25,6 +25,8 @@ def getRestartFiles(path,radical,puzzled=False):
         return glob.glob(path+radical+"_*.nc").sorted()
     else:
         try:
+            print("Path: ",path)
+            print(path+radical+".nc")
             return glob.glob(path+radical+".nc")[0]
         except IndexError:
             print("No Full Restart Found : Use NEMO_REBUILD from NEMO tools if you didn’t do it yet.")
@@ -44,7 +46,8 @@ def getMaskFile(maskpath,restart):
     """
     mask = xr.open_dataset(maskpath,decode_times=False)
     # Harmonizing the structure of mask with that of restart
-    mask = mask.swap_dims(dims_dict={"z": "nav_lev","t":"time_counter"})
+    #Isaac, default configuration for DINO mask is the same as the restart file
+    #mask = mask.swap_dims(dims_dict={"z": "nav_lev","t":"time_counter"})
     mask["time_counter"]=restart["time_counter"]
     return mask
 
@@ -124,7 +127,7 @@ def load_predictions(restart,dirpath="/data/mtissot/simus_predicted"):
     ## Loading new SSH in directly affected variables 
     ## (loading zos.npy, selecting last snapshot, then converting to fitting xarray.DataArray, and cleaning the nans) 
     try:
-        zos=np.load(dirpath+"/zos.npy")[-1:]
+        zos=np.load(dirpath+"/pred_zos.npy")[-1:]
         restart["sshn"] = xr.DataArray(zos, dims=("time_counter", "y", "x"), name="sshn").fillna(0)
         restart["sshb"] = restart["sshn"].copy()
         restart["ssh_m"] = restart["sshn"].copy()
@@ -134,7 +137,7 @@ def load_predictions(restart,dirpath="/data/mtissot/simus_predicted"):
     ## Loading new SO in directly affected variables 
     ## (loading so.npy, selecting last snapshot, then converting to fitting xarray.DataArray, and cleaning the nans) 
     try:
-        so = np.load(dirpath+"/so.npy")[-1:]
+        so = np.load(dirpath+"/pred_so.npy")[-1:]
         restart["sn"] = xr.DataArray(so, dims=("time_counter", "nav_lev","y", "x"), name="sn").fillna(0)
         restart["sb"] = restart["sn"].copy()
         restart["sss_m"] = restart["sn"].isel(nav_lev=0).copy()
@@ -144,7 +147,7 @@ def load_predictions(restart,dirpath="/data/mtissot/simus_predicted"):
     ## Loading new THETAO in directly affected variables 
     ## (loading thetao.npy, selecting last snapshot, then converting to fitting xarray.DataArray, and cleaning the nans) 
     try:
-        thetao=np.load(dirpath+"/thetao.npy")[-1:]
+        thetao=np.load(dirpath+"/pred_thetao.npy")[-1:]
         restart["tn"] = xr.DataArray(thetao, dims=("time_counter", "nav_lev","y", "x"), name="tn").fillna(0)
         restart["tb"] = restart["tn"].copy()
         restart["sst_m"] = restart["tn"].isel(nav_lev=0).copy()
@@ -250,7 +253,8 @@ def update_e3t(restart,mask):
     Returns:
         e3t (numpy.ndarray) : Updated array of z-axis cell thicknesses.
     """
-    e3t_ini = restart.e3t_ini                                        # initial z axis cell's thickness on grid T - (t,z,y,x)
+    # e3t_ini = restart.e3t_ini #Changed
+    e3t_ini = mask.e3t_0                                       # initial z axis cell's thickness on grid T - (t,z,y,x)
     ssmask  = mask.tmask.max(dim="nav_lev")       # continent mask                            - (t,y,x)
     bathy   = e3t_ini.sum(dim="nav_lev")                                         # inital Bathymetry                         - (t,y,x)
     ssh     = restart.sshn                                          # Sea Surface Height                        - (t,y,x)
