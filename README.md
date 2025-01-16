@@ -133,4 +133,4 @@ NB : En amont code de Guillaume pour obtenir des moyennes annuelles
   `python main_restart.py --restart_path "path/to/restart/file/directory" --radical DINO_[<time>]_restart --mask_file /path/to/mesh_mask.nc --prediction_path /path/to/simus_predicted`
     `main_restart.py` has been modified to work on DINO data. This is in the [run_with_DINO_data](https://github.com/m2lines/Spinup-NEMO/tree/run_with_DINO_data) branch.
     This creates an updated Restart file with the same names as the original but with 'NEW' prepended at the front.
-7. Restart DINO with updated restart file.
+7. Restart DINO with updated restart file. (We first need resolve the problem with the "iteration" / step number in the nemo file) 
