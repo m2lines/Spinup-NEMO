@@ -54,9 +54,6 @@ for var in variables_to_check:
             if hasattr(metrics, metric):
                 metric_function = getattr(metrics, metric)
                 try:
-                    print(variable_data)
-                    print(metric_var_name)
-                    print(metric_function)
                     result = metric_function(variable_data, metric_var_name)
                     print(result)
                     results[var][metric] = result
@@ -65,3 +62,5 @@ for var in variables_to_check:
                     print(f"Error applying metric '{metric}' to '{metric_var_name}': {e}")
             else:
                 print(f"Metric '{metric}' not found in {metric_file_path}")
+                
+                
