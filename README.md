@@ -136,11 +136,11 @@ NB : En amont code de Guillaume pour obtenir des moyennes annuelles
     Where 36 in the above corresponds to the number of MPI processes.
 
 6.  In the directory which holds your NEMO data, create a new restart file by running `main_restart.py`:
-       ```bash
+      ```bash
         python main_restart.py
-        --restart_path "/path/to/restart/file/directory"
+        --restart_path /path/to/EXP00/
         --radical DINO_[<time>]_restart
-        --mask_file /full/path/to/mesh_mask.nc
+        --mask_file /full/path/to/EXP00/mesh_mask.nc
         --prediction_path /full/path/to/directory/simus_predicted/
       ```
       where:
