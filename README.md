@@ -118,19 +118,33 @@ NB : En amont code de Guillaume pour obtenir des moyennes annuelles
 
 2. Create a virtual environment, for example, with conda. Then install the requirements within it using `pip install -r requirements.txt`
 
-2. Run the resampling **notebook** on `DINO_1m_grid_T.nc` (See [run_with_DINO_data](https://github.com/m2lines/Spinup-NEMO/tree/run_with_DINO_data) branch). This is the [Notebook](https://github.com/m2lines/Spinup-NEMO/blob/resample_dino_data/Notebooks/Resample_ssh.ipynb)   
+3. Run the resampling **notebook** on `DINO_1m_grid_T.nc` (See [run_with_DINO_data](https://github.com/m2lines/Spinup-NEMO/tree/run_with_DINO_data) branch). This is the [Notebook](https://github.com/m2lines/Spinup-NEMO/blob/resample_dino_data/Notebooks/Resample_ssh.ipynb)   
   This notebook converts DINO 2d monthly SSH output `DINO_1m_grid_T.nc` to annual `DINO_1m_To_1y_grid_T.nc`. Temperature and salinity (3D) are sampled annually already and are in `DINO_1y_grid_T.nc`. We can then read these files in the updated notebook for DINO. 
-3. Run the updated `Jumper.ipynb` **notebook** and to create the projected state. 
+4. Run the updated `Jumper.ipynb` **notebook** and to create the projected state. 
     1. In the Jumper Notebook set the `path` to the directory of the NEMO/DINO (Grid) data: 
     ![image](https://hackmd.io/_uploads/HkODLLHPyl.png)
 
 
 
-6. Prepare restart file:
+5. Prepare restart file:
    Combine `mesh_mask_[0000].nc` files and `DINO_[<time>]_restart_[<process>].nc` (last files) using **[REBUILD_NEMO](https://forge.nemo-ocean.eu/nemo/nemo/-/tree/4.2.0/tools/REBUILD_NEMO)** tools
+6.
    In the directory which holds your nemo data
-   Create new restart file: Run `main_restart.py`.
+   Create a new restart file by running `main_restart.py`.
   `python main_restart.py --restart_path "path/to/restart/file/directory" --radical DINO_[<time>]_restart --mask_file /path/to/mesh_mask.nc --prediction_path /path/to/simus_predicted`
-    `main_restart.py` has been modified to work on DINO data. This is in the [run_with_DINO_data](https://github.com/m2lines/Spinup-NEMO/tree/run_with_DINO_data) branch.
+    `main_restart.py` 
+    This script has been modified to work on DINO data. This is in the [run_with_DINO_data](https://github.com/m2lines/Spinup-NEMO/tree/run_with_DINO_data) branch.
     This creates an updated Restart file with the same names as the original but with 'NEW' prepended at the front.
-7. Restart DINO with updated restart file. (We first need resolve the problem with the "iteration" / step number in the nemo file) 
+    
+7. Within the NEMO repository make a copy of DINO experiment directory. Delete old NEMO output files from the original experiment directory (mesh mask, restart files, grid files etc). The copy serves as a backup as data is overwritten on each run.
+8. Copy mesh mask and restart file to the original experiment directory
+9. Namelist config need to be updated:
+Open namelist_cfg and amend the following under namrun:
+
+-    nn_it000 (the first timestep) (The last timestep +1)
+-    nn_itend (the final timestep)
+- cn_ocerst_in (the restart name syntax - to coincide with the latest restart file)
+- ln_rstart (start from rest(F) or from a restart file (T).
+ ![image](https://hackmd.io/_uploads/HJtsvsCPJe.png)
+ 
+10. Restart DINO with updated restart file.
