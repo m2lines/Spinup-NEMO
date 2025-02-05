@@ -153,9 +153,9 @@ NB : En amont code de Guillaume pour obtenir des moyennes annuelles
     The `main_restart.py` script has been modified to work on DINO data. This is in the [run_with_DINO_data](https://github.com/m2lines/Spinup-NEMO/tree/run_with_DINO_data) branch. It creates an updated restart file with the same names as the original but with 'NEW' prepended to the front.
 
 
-7. Within the NEMO repository make a copy of DINO experiment directory. Delete old NEMO output files from the original experiment directory (mesh mask, restart files, grid files etc). The copy serves as a backup as data is overwritten on each run.
-8. Copy `mesh_mask_<proc_id>.nc` and `DINO_[<time>]_restart_<proc_id>.nc` to the original experiment directory.
-9. Then modify the namelist_cfg file. Open namelist_cfg and amend the following under namrun:
+7.  Within the NEMO repository make a copy of DINO experiment directory. Delete old NEMO output files from the original experiment directory (mesh mask, restart files, grid files etc). The copy serves as a backup as data is overwritten on each run.
+8.  Copy `mesh_mask_<proc_id>.nc` and `DINO_[<time>]_restart_<proc_id>.nc` to the original experiment directory.
+9.  Then modify the namelist_cfg file. Open namelist_cfg and amend the following under namrun:
 
     - `nn_it000` (the first timestep) (The last timestep +1)
     - `nn_itend` (the final timestep)
