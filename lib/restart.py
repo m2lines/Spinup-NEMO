@@ -606,4 +606,5 @@ def add_bottom_velocity(v_restart, v_update, mask):
     v_fond = v_restart.isel(nav_lev=ind_prof, time_counter=0)
     mask_nan_update = np.isnan(v_update)
     v_new = mask_nan_update * v_restart + (1 - mask_nan_update) * (v_fond + v_update)
+    #v_new = v_update # substitute line 608 with this one to skip update of bottom velocities with restart
     return v_restart
