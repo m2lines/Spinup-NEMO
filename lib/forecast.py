@@ -17,7 +17,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-#file    #Select the file where the prepared simu was saved  
+#file    #Select the file where the prepared simu was saved
 #var     #Select the var you want to forecast
 def load_ts(file,var):
     """
@@ -49,7 +49,7 @@ def load_ts(file,var):
 class Simulation:
 
     """!!!Modified version where we apply a script to get yearly average for the simu before!!!"""
-    
+
     """
     A class for loading and preparing simulation data.
 
@@ -68,9 +68,9 @@ class Simulation:
         x_size (int)                  : The size of the x dimension.
         z_size (int or None)          : The size of the z dimension, if available.
         shape (tuple)                 : The shape of the simulation data.
-        simulation (xarray.DataArray) : The loaded simulation data 
+        simulation (xarray.DataArray) : The loaded simulation data
     """
-    
+
     def __init__(self,path,term,start=0,end=None,comp=0.9,ye=True,ssca=False): #choose jobs 3 if 2D else 1
         """
         Initialize Simulation with specified parameters.
@@ -82,7 +82,7 @@ class Simulation:
             end (int, optional)    : The end index for data slicing. Defaults to None.
             comp (float, optional) : The comp value for the simulation. Defaults to 0.9.
             ye (bool, optional)    : Flag indicating whether to use ye or not. Defaults to True.
-            ssca (bool, optional)  : Flag indicating whether ssca is used. Defaults to False.  #Not used in this class 
+            ssca (bool, optional)  : Flag indicating whether ssca is used. Defaults to False.  #Not used in this class
         """
         self.path  = path
         self.term  = term
@@ -94,10 +94,10 @@ class Simulation:
         self.len   = 0
         self.desc  = {}
         self.getAttributes()       #self time_dim, y_size, x_size,
-        self.getSimu()             #self simu , desc {"mean","std","min","max"} 
+        self.getSimu()             #self simu , desc {"mean","std","min","max"}
 
     #### Load files and dimensions info ###
-    
+
     def getData(path,term):
         """
         Get the files related to the simulation in the right directory
@@ -117,7 +117,7 @@ class Simulation:
             if term[1] in file: #add param!=""
                 grid.append(path+"/"+file)
         return grid
-    
+
     def getAttributes(self):
         """
         Get attributes of the simulation data.
@@ -136,9 +136,9 @@ class Simulation:
             self.z_size = None
             self.shape = (self.y_size,self.x_size)
         #self.getSSCA(array)
-    
+
     #### Load simulation ###
-        
+
     def getSimu(self):
         """
         Load simulation data.
@@ -146,10 +146,10 @@ class Simulation:
         #array = list(Parallel(jobs)(delayed(self.loadFile)(file) for file in self.files))
         array = [self.loadFile(file) for file in self.files if self.len<self.end]
         array = xr.concat(array, self.time_dim)
-        self.desc = {"mean":np.nanmean(array),"std":np.nanstd(array),"min":np.nanmin(array),"max":np.nanmax(array)} 
+        self.desc = {"mean":np.nanmean(array),"std":np.nanstd(array),"min":np.nanmin(array),"max":np.nanmax(array)}
         self.simulation = array
         del array
-       
+
     def loadFile(self,file):
         """
         Load simulation data from a file. Stop when the imported simulation date is superior to the attirbute end.
@@ -173,12 +173,12 @@ class Simulation:
         #else:
         #    self.len = self.len + array.sizes[self.time_dim]
         return array.load()
-    
+
 
     #########################
     #  prepare simulation   #
     #########################
-    
+
     def prepare(self,stand=True):
         """
         Prepare the simulation data selecting indices from start to end, updating length and obtaining statistics,
@@ -191,12 +191,12 @@ class Simulation:
             self.simulation = self.simulation[self.start:self.end]
         else:
             self.simulation = self.simulation[self.start:]
-        self.len = np.shape(self.simulation)[0] 
+        self.len = np.shape(self.simulation)[0]
         #self.removeClosedSeas()
         self.desc.update({"mean":np.nanmean(self.simulation),"std":np.nanstd(self.simulation),
                           "min":np.nanmin(self.simulation),"max":np.nanmax(self.simulation)})
         if stand:
-            self.standardize() 
+            self.standardize()
         self.simulation = self.simulation.values
 
     def getSSCA(self,array):
@@ -204,41 +204,41 @@ class Simulation:
         Extract the seasonality data from the simulation. Not used : we import yearly data
 
         Parameters:
-            array (xarray.Dataset): The last dataset containing simulation data in the simulation file. 
+            array (xarray.Dataset): The last dataset containing simulation data in the simulation file.
         """
         array = array[self.term[0]].values
         n = np.shape(array)[0]//12 *12
         array = array[-n:]
         ssca  = np.array(array).reshape((n//12, 12)+ self.shape) #np.array(array[self.term])
         ssca  = np.mean(ssca, axis=0)
-        ssca_extended = np.tile(ssca, (n//12, 1, 1)) 
+        ssca_extended = np.tile(ssca, (n//12, 1, 1))
         self.desc["ssca"] = sscad
         if self.ye==False:
             self.simulation = array - ssca_extended
-        
-            
+
+
     def removeClosedSeas(self):
         """
-        Remove closed seas from the simulation data. Not used : we don't have the specific mask to fill with predictions 
+        Remove closed seas from the simulation data. Not used : we don't have the specific mask to fill with predictions
         """
         array   = self.simulation
-        y_range = [slice(240, 266),slice(235, 276),slice(160, 201)]  #mer noir, grands lacs, lac victoria 
-        x_range = [slice(195, 213),slice(330, 351),slice(310, 325)] 
+        y_range = [slice(240, 266),slice(235, 276),slice(160, 201)]  #mer noir, grands lacs, lac victoria
+        x_range = [slice(195, 213),slice(330, 351),slice(310, 325)]
         for y,x in zip(y_range,x_range):
-            array = array.where((array['x'] < x.start) | (array['x'] >= x.stop) | 
+            array = array.where((array['x'] < x.start) | (array['x'] >= x.stop) |
                                 (array['y'] < y.start) | (array['y'] >= y.stop),drop=True)
         self.simulation = array
-        
+
     def standardize(self):
         """
         Standardize the simulation data.
         """
-        self.simulation = (self.simulation - self.desc["mean"]) / (2*self.desc["std"]) 
-        
+        self.simulation = (self.simulation - self.desc["mean"]) / (2*self.desc["std"])
+
     ##################
     #  Compute PCA   #
     ##################
-        
+
     def applyPCA(self):
         """
         Apply Principal Component Analysis (PCA) to the simulation data.
@@ -249,7 +249,7 @@ class Simulation:
         pca = PCA(self.comp, whiten=False)
         self.components = pca.fit_transform(array_masked)
         self.pca  = pca
-        
+
     def getPC(self,n):
         """
         Get principal component map for the specified component.
@@ -265,17 +265,17 @@ class Simulation:
         map_[~self.bool_mask] = np.nan
         map_[self.bool_mask]  = self.pca.components_[n]
         map_ = map_.reshape(self.shape)
-        map_ = 2 * map_ * self.desc["std"] + self.desc["mean"] 
+        map_ = 2 * map_ * self.desc["std"] + self.desc["mean"]
         return map_
 
 
-    ############################### NOT USED IN THE MAIN.PY ############################### 
+    ############################### NOT USED IN THE MAIN.PY ###############################
     def rmseOfPCA(self,n):
         reconstruction = self.reconstruct(n)
         rmse_values    = self.rmseValues(reconstruction) * 2 * self.desc["std"]
         rmse_map       = self.rmseMap(reconstruction) * 2 * self.desc["std"]
         return reconstruction, rmse_values, rmse_map
-    
+
     def rmseValues(self,reconstruction):
         truth = self.simulation# * 2 * self.desc["std"] + self.desc["mean"]
         rec   = reconstruction # * 2 * self.desc["std"] + self.desc["mean"]
@@ -288,14 +288,14 @@ class Simulation:
             for i in range(len(n)):
                 rmse_values[:,i] = rmse_values[:,i]/n[i]
             rmse_values = np.sqrt(rmse_values)
-        return rmse_values 
-        
+        return rmse_values
+
     def rmseMap(self,reconstruction):
         t = self.len
         truth = self.simulation
-        reconstruction = reconstruction 
+        reconstruction = reconstruction
         return np.sqrt(np.sum((self.simulation[:]-reconstruction)**2,axis=0)/t)
-    
+
     def reconstruct(self, n):
         """
         Reconstruct data using a specified number of principal components.
@@ -322,7 +322,7 @@ class Simulation:
     ##################
     #   Save in db   #
     ##################
-    
+
     def makeDico(self):
         """
         Create a dictionary containing simulation data, descriptive statistics, and other relevant information.
@@ -341,7 +341,7 @@ class Simulation:
             dico["z_size"]= self.z_size
         dico["shape"]= self.shape
         return dico
-    
+
     def save(self,file,term):
         """
         Save the simulation data and information to files.
@@ -363,7 +363,7 @@ class Simulation:
 ##   Forecast & reconstruct    ##
 ##                             ##
 #################################
-    
+
 
 class Predictions:
 
@@ -377,7 +377,7 @@ class Predictions:
             gp (GaussianProcessRegressor) : The Gaussian Process regressor.
             w (int)                       : Width for moving average and metrics calculation.
     """
-    
+
     def __init__(self,var,data=None,info=None,gp=None,w=12):
         """
         Initialize the Predictions object.
@@ -396,14 +396,14 @@ class Predictions:
         self.info =info
         self.info["desc"] = self.info["desc"].item()
         self.len_ = len(self.data)
-    
+
     def __len__(self):
         return len(self.data)
-        
+
     ##################
     #    Forecast    #
     ##################
-    
+
     @staticmethod
     def defineGP():
         """
@@ -412,7 +412,7 @@ class Predictions:
             - an irregularities_kernel for periodic patterns CHANGER 5/45 1/len(data)?
             - a noise_kernel
         We also set a n_restarts_optimizer to optimize hyperparameters
-        
+
         Returns:
             GaussianProcessRegressor: The Gaussian Process regressor.
         """
@@ -420,8 +420,8 @@ class Predictions:
         irregularities_kernel  = 10 * ExpSineSquared(length_scale=5/45, periodicity=5/45)#0.5**2*RationalQuadratic(length_scale=5.0, alpha=1.0) + 10 * ExpSineSquared(length_scale=5.0)
         noise_kernel           = 2*WhiteKernel(noise_level=1)#0.1**2*RBF(length_scale=0.01) + 2*WhiteKernel(noise_level=1)
         kernel =   irregularities_kernel + noise_kernel +long_term_trend_kernel
-        return GaussianProcessRegressor(kernel=kernel, normalize_y=False,n_restarts_optimizer=8)
-     
+        return GaussianProcessRegressor(kernel=kernel, normalize_y=True,n_restarts_optimizer=8,random_state=42)
+
 
     def Forecast(self,train_len,steps,jobs=1):
         """
@@ -439,11 +439,11 @@ class Predictions:
                 - metrics (list of dict) : One dict of metrics by forecast
         """
         r = Parallel(n_jobs=jobs)(delayed(self.forecast_ts)(c,train_len,steps) for c in range(1,self.data.shape[1]+1))
-        y_hats = pd.DataFrame(np.array([r[i][0] for i in range(len(r))]).T, columns=self.data.columns) 
-        y_stds = pd.DataFrame(np.array([r[i][1] for i in range(len(r))]).T, columns=self.data.columns) 
-        metrics = [r[i][2] for i in range(len(r))]  
+        y_hats = pd.DataFrame(np.array([r[i][0] for i in range(len(r))]).T, columns=self.data.columns)
+        y_stds = pd.DataFrame(np.array([r[i][1] for i in range(len(r))]).T, columns=self.data.columns)
+        metrics = [r[i][2] for i in range(len(r))]
         return y_hats, y_stds, metrics
-    
+
     def forecast_ts(self,n,train_len,steps=0):
         """
         Forecast of one time series, function called in parallel in Forecast
@@ -460,9 +460,9 @@ class Predictions:
                 metrics (dict)    : Dictionary of metrics defined in the corresponding function
         """
         random.seed(20)
-        mean,std,y_train,y_test,x_train,x_pred = self.prepare(n,train_len,steps) 
-        self.gp.fit(x_train,y_train)  
-        y_hat,y_hat_std = self.gp.predict(x_pred,return_std=True) 
+        mean,std,y_train,y_test,x_train,x_pred = self.prepare(n,train_len,steps)
+        self.gp.fit(x_train,y_train)
+        y_hat,y_hat_std = self.gp.predict(x_pred,return_std=True)
         y_train,y_hat,y_hat_std = y_train*2*std+mean, y_hat*2*std+mean, y_hat_std*2*std
         metrics = None
         if y_test is not None:
@@ -514,12 +514,12 @@ class Predictions:
         if(train_len < len(self)):
              plt.plot(self.data[self.var+"-"+str(n)][train_len-1:], linestyle="dashed", color="black", alpha =0.5,label = "Test serie")
         plt.plot(y_hat,color=color, label = f"GP forecast")
-        plt.fill_between(np.arange(0,len(y_hat)),y_hat+y_hat_std, y_hat-y_hat_std, color = color,alpha = 0.2) 
+        plt.fill_between(np.arange(0,len(y_hat)),y_hat+y_hat_std, y_hat-y_hat_std, color = color,alpha = 0.2)
         plt.title(f"Forecast of {self.var} {str(n)}")
         plt.legend()
-        plt.show()  
+        plt.show()
         print()
- 
+
     @staticmethod
     def getMetrics(w,y_hat,y_test):
         """
@@ -582,9 +582,9 @@ class Predictions:
 #################################
 
 #NOT UP-TO-DATE WITH PREDICTION CLASS
-  
+
 class optimization:
-    
+
     def __init__(self,ids,ratio,ncomp,var,steps=1,min_test=50,min_train=50,kernels=None,trunc=None):
         random.shuffle(ids)
         i = int(len(ids) * ratio)
@@ -600,9 +600,9 @@ class optimization:
         self.trunc     = trunc
         self.kernels   = [RBF(), RationalQuadratic()] if kernels is None else kernels
         self.seed      = random.randint(1, 200)
-    
+
     ###___get all gp___###
-    
+
     def getAllGP(self, n=4, r=RBF()):
         kernels = self.kernelCombination(r, n)
         listGP = []
@@ -620,9 +620,9 @@ class optimization:
                     self.kernelCombination(r * k[0], n=n - 1),
                     self.kernelCombination(r + k[1], n=n - 1),
                     self.kernelCombination(r * k[1], n=n - 1))
-    
+
     ###___evaluate current gp___###
-    
+
     def evaluateCurrentProcess(self):
         random.seed(self.seed)
         results_eval = []
@@ -648,10 +648,10 @@ class optimization:
                 else:
                     results_test[-1] = np.sum([min(val, self.trunc) for val in results_test[-1]])
         self.current_score_eval = np.sum(results_eval)
-        self.current_score_test = np.sum(results_test)   
-    
+        self.current_score_test = np.sum(results_test)
+
     ###___evaluate gp___###
-    
+
     #this methode should be changed to rmse with raw simulation
     def evaluateProcess(self,simu,train_lens,process):
         currentgp = simu.gp
@@ -661,9 +661,9 @@ class optimization:
         simu.gp = currentgp
         if self.trunc is None:
             return np.sum(test)
-        else : 
+        else :
             return np.sum([min(val, self.trunc) for val in test])
-    
+
     def evaluateKernels(self):
         random.seed(self.seed)
         results=[]
@@ -675,9 +675,9 @@ class optimization:
                 print("",end="\n")
         results = [(process,score) for process,score in zip(self.gps, np.sum(results,axis=0))]
         self.scores_eval = sorted(results, key=lambda item: item[1], reverse=True)
-        
+
     ###___Select on test___###
-    
+
     def testKernels(self):
         random.seed(self.seed)
         gps_test = [process for process,score in self.scores_eval if score > self.current_score_eval]
@@ -690,9 +690,3 @@ class optimization:
                 print("",end="\n")
         results = [(process,score) for process,score in zip(gps_test, np.sum(results,axis=0))]
         self.scores_test = sorted(results, key=lambda item: item[1], reverse=True)
-        
-    
-    
-
-   
- 
