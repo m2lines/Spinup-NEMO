@@ -90,7 +90,7 @@ class Simulation:
             term (str)             : The term for the simulation.
             start (int, optional)  : The start index for data slicing. Defaults to 0.
             end (int, optional)    : The end index for data slicing. Defaults to None.
-            comp (float, optional) : The comp value for the simulation. Defaults to 0.9.
+            comp (float, optional) : The comp value for the simulation. Defaults to 0.9. Percentage of explained variance.
             ye (bool, optional)    : Flag indicating whether to use ye or not. Defaults to True.
             ssca (bool, optional)  : Flag indicating whether ssca is used. Defaults to False.  #Not used in this class
         """
@@ -133,7 +133,7 @@ class Simulation:
         Get attributes of the simulation data.
         """
         array = xr.open_dataset(self.files[-1], decode_times=False,chunks={"time": 200, "x":120})
-        self.time_dim  = list(array.dims)[0]
+        self.time_dim  = list(array.dims)[0] # Seems that index at 0 is 'nav_lat' TODO: Investigate this
         self.y_size    = array.sizes['y']
         self.x_size    = array.sizes['x']
         if "deptht" in array[self.term[0]].dims:
