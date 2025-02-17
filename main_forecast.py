@@ -113,7 +113,7 @@ def emulate(simu_path, steps, ye, start, end, comp):
         prepare(term, simu_path, start, end, ye, comp)
         print()
         print(f"Forecasting {term[0]}...")
-        jump(term[0], steps)
+        jump(simu_path, term[0], steps)
         print()
 
 
