@@ -43,7 +43,7 @@ def load_ts(file, var):
     dico = np.load(file + f"/{var}.npz", allow_pickle=True)
     dico = {key: dico[key] for key in dico.keys()}
     df = pd.DataFrame(
-        dico["ts"], columns=[f"{var}-{i+1}" for i in range(np.shape(dico["ts"])[1])]
+        dico["ts"], columns=[f"{var}-{i + 1}" for i in range(np.shape(dico["ts"])[1])]
     )
     with open(file + f"/pca_{var}", "rb") as file:
         dico["pca"] = pickle.load(file)
