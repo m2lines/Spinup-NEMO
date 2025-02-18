@@ -6,7 +6,8 @@ import pickle
 import sys
 import random
 import argparse
-sys.path.insert(0,"lib/")
+
+sys.path.insert(0, "lib/")
 from lib.restart import *
 import xarray as xr
 
