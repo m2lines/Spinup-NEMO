@@ -73,4 +73,4 @@ python main_restart.py \
 
 # outputs with prefix NEW.
 
-echo "New restart file in $nemo_output_dir as $nemo_output_dir/NEW_${RESTART_NAME}_restart.nc"
+echo "New restart file in $nemo_output_dir as $nemo_output_dir/NEW_${RESTART_NAME}.nc"
