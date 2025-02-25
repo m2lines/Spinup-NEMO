@@ -43,7 +43,7 @@ def load_ts(file, var):
     dico = np.load(file + f"/{var}.npz", allow_pickle=True)
     dico = {key: dico[key] for key in dico.keys()}
     df = pd.DataFrame(
-        dico["ts"], columns=[f"{var}-{i+1}" for i in range(np.shape(dico["ts"])[1])]
+        dico["ts"], columns=[f"{var}-{i + 1}" for i in range(np.shape(dico["ts"])[1])]
     )
     with open(file + f"/pca_{var}", "rb") as file:
         dico["pca"] = pickle.load(file)
@@ -92,7 +92,7 @@ class Simulation:
             term (str)             : The term for the simulation.
             start (int, optional)  : The start index for data slicing. Defaults to 0.
             end (int, optional)    : The end index for data slicing. Defaults to None.
-            comp (float, optional) : The comp value for the simulation. Defaults to 0.9.
+            comp (float, optional) : The comp value for the simulation. Defaults to 0.9. Percentage of explained variance.
             ye (bool, optional)    : Flag indicating whether to use ye or not. Defaults to True.
             ssca (bool, optional)  : Flag indicating whether ssca is used. Defaults to False.  #Not used in this class
         """
@@ -126,7 +126,7 @@ class Simulation:
         """
         grid = []
         for file in sorted(os.listdir(path)):
-            if term + "." in file:  # add param!=""
+            if term[1] in file:  # add param!=""
                 grid.append(path + "/" + file)
         return grid
 
@@ -137,13 +137,15 @@ class Simulation:
         array = xr.open_dataset(
             self.files[-1], decode_times=False, chunks={"time": 200, "x": 120}
         )
-        self.time_dim = list(array.dims)[0]
+        self.time_dim = list(array.dims)[
+            0
+        ]  # Seems that index at 0 is 'nav_lat' TODO: Investigate this
         self.y_size = array.sizes["y"]
         self.x_size = array.sizes["x"]
-        if "deptht" in array[self.term].dims:
+        if "deptht" in array[self.term[0]].dims:
             self.z_size = array.sizes["deptht"]
             self.shape = (self.z_size, self.y_size, self.x_size)
-        elif "olevel" in array[self.term].dims:
+        elif "olevel" in array[self.term[0]].dims:
             self.z_size = array.sizes["olevel"]
             self.shape = (self.z_size, self.y_size, self.x_size)
         else:
@@ -183,7 +185,7 @@ class Simulation:
         array = xr.open_dataset(
             file, decode_times=False, chunks={"time": 200, "x": 120}
         )
-        array = array[self.term]
+        array = array[self.term[0]]
         self.len = self.len + array.sizes[self.time_dim]
         # print(self.len)
         # if self.ye:
@@ -232,7 +234,7 @@ class Simulation:
         Parameters:
             array (xarray.Dataset): The last dataset containing simulation data in the simulation file.
         """
-        array = array[self.term].values
+        array = array[self.term[0]].values
         n = np.shape(array)[0] // 12 * 12
         array = array[-n:]
         ssca = np.array(array).reshape(
@@ -296,6 +298,7 @@ class Simulation:
         Returns:
             (numpy.ndarray): The principal component map.
         """
+        # map_ = np.zeros((np.product(self.shape)), dtype=float)
         map_ = np.zeros((np.prod(self.shape)), dtype=float)
         map_[~self.bool_mask] = np.nan
         map_[self.bool_mask] = self.pca.components_[n]
@@ -464,7 +467,7 @@ class Predictions:
         )  # 0.1**2*RBF(length_scale=0.01) + 2*WhiteKernel(noise_level=1)
         kernel = irregularities_kernel + noise_kernel + long_term_trend_kernel
         return GaussianProcessRegressor(
-            kernel=kernel, normalize_y=False, n_restarts_optimizer=8
+            kernel=kernel, normalize_y=True, n_restarts_optimizer=8, random_state=42
         )
 
     def Forecast(self, train_len, steps, jobs=1):
