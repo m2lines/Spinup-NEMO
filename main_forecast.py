@@ -36,7 +36,7 @@ def prepare(term, simu_path, start, end, ye, comp):
     print(f"{term[0]} prepared")
 
     # Exctract time series through PCA
-    simu.applyPCA()
+    simu.decompose()
     print(f"PCA applied on {term[0]}")
 
     os.makedirs(f"{simu_path}/simu_prepared/{term[0]}", exist_ok=True)
@@ -75,7 +75,8 @@ def jump(simu_path, term, steps):
     print(f"{term} time series forcasted")
 
     # Reconstruct n predicted components
-    n = len(simu_ts.info["pca"].components_)
+    # n = len(simu_ts.info["pca"].components_)
+    n = simu_ts.info["pca"].n_components
     predictions_zos = simu_ts.reconstruct(y_hat, n, begin=len(simu_ts))
     print(f"{term} predictions reconstructed")
 
