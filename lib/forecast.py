@@ -20,7 +20,7 @@ from sklearn.gaussian_process.kernels import (
 )  # , Matérn
 import pickle
 import warnings
-from forecast_technique import apply_forecast, init_technique
+from forecast_technique import GaussianProcessForecaster
 from dimensionality_reduction import (
     DimensionalityReductionPCA,
     DimensionalityReductionKernelPCA,
@@ -420,7 +420,7 @@ class Predictions:
             w (int)                       : Width for moving average and metrics calculation.
         """
         self.var = var
-        self.technique = init_technique() if technique is None else technique
+        self.forecaster = GaussianProcessForecaster()
         self.w = w
         self.data = data
         self.info = info
@@ -480,11 +480,7 @@ class Predictions:
         random.seed(20)
         mean, std, y_train, y_test, x_train, x_pred = self.prepare(n, train_len, steps)
 
-        # Replace this part
-        # self.technique.fit(x_train, y_train)
-        # y_hat, y_hat_std = self.technique.predict(x_pred, return_std=True)
-        # Replace the above part
-        y_hat, y_hat_std = apply_forecast(y_train, x_train, x_pred)
+        y_hat, y_hat_std = self.forecaster.apply_forecast(y_train, x_train, x_pred)
 
         y_train, y_hat, y_hat_std = (
             y_train * 2 * std + mean,
