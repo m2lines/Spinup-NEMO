@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from sklearn.decomposition import PCA  # TODO: Import the general decomposition class
+from sklearn.decomposition import (
+    PCA,
+    KernelPCA,
+)  # TODO: Import the general decomposition class
 
 
 class DimensionalityReduction(ABC):
@@ -29,7 +32,7 @@ class DimensionalityReduction(ABC):
 class DimensionalityReductionPCA(DimensionalityReduction):
     def __init__(self, comp):
         self.components = None
-        self.comp = None
+        self.comp = comp
         self.pca = None
         self.shape = None
         self.desc = None
@@ -44,12 +47,14 @@ class DimensionalityReductionPCA(DimensionalityReduction):
         array = simulation.reshape(length, -1)
         self.bool_mask = np.asarray(np.isfinite(array[0, :]), dtype=bool)
         array_masked = array[:, self.bool_mask]
+        print(self.comp)
         pca = PCA(self.comp, whiten=False)
         self.components = pca.fit_transform(array_masked)
         self.pca = pca
 
         return self.components, self.pca, self.bool_mask
 
+    @staticmethod
     def reconstruct_predictions(predictions, n, info, begin=0):
         """
         Reconstruct the time series data from predictions.
@@ -64,7 +69,7 @@ class DimensionalityReductionPCA(DimensionalityReduction):
         """
         rec = []
         int_mask = info["mask"].astype(np.int32).reshape(info["shape"])
-        print(int_mask)
+        # print(int_mask)
         for t in range(begin, len(predictions)):
             map_ = np.zeros((info["shape"]), dtype=np.float32)
             arr = np.array(
@@ -148,10 +153,6 @@ class DimensionalityReductionPCA(DimensionalityReduction):
         return np.sqrt(np.sum((self.simulation[:] - reconstruction) ** 2, axis=0) / t)
 
 
-from sklearn.decomposition import KernelPCA
-import numpy as np
-
-
 class DimensionalityReductionKernelPCA(DimensionalityReduction):
     def __init__(self, comp, kernel="rbf", **kwargs):
         # comp is the number of components
@@ -207,7 +208,7 @@ class DimensionalityReductionKernelPCA(DimensionalityReduction):
         """
         rec = []
         int_mask = info["mask"].astype(np.int32).reshape(info["shape"])
-        print(int_mask)
+        # print(int_mask)
         for t in range(begin, len(predictions)):
             # Create an array for the t-th prediction;
             # pad with zeros for any missing components

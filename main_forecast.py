@@ -47,8 +47,10 @@ def prepare(term, simu_path, start, end, ye, comp):
     simu.save(f"{simu_path}/simu_prepared", term[0])
     print(f"{term[0]} saved at {simu_path}/simu_repared/{term[0]}")
 
+    return simu
 
-def jump(simu_path, term, steps):
+
+def jump(simu_path, term, steps, simu):
     """
     Forecast the simulation
 
@@ -75,9 +77,13 @@ def jump(simu_path, term, steps):
     print(f"{term} time series forcasted")
 
     # Reconstruct n predicted components
-    # n = len(simu_ts.info["pca"].components_)
-    n = simu_ts.info["pca"].n_components
-    predictions_zos = simu_ts.reconstruct(y_hat, n, begin=len(simu_ts))
+    # n = len(simu_ts.info["pca"].components_) # PCA
+    # n = simu_ts.info["pca"].n_components # Kernel PCA
+
+    n = simu.get_num_components()
+    print(f"Number of components: {n}")
+    predictions_zos = simu.reconstruct(y_hat, n, infos, begin=len(simu_ts))
+
     print(f"{term} predictions reconstructed")
 
     os.makedirs(f"{simu_path}/simu_predicted/", exist_ok=True)
@@ -111,10 +117,10 @@ def emulate(simu_path, steps, ye, start, end, comp):
 
     for term in dino_data:
         print(f"Preparing {term[0]}...")
-        prepare(term, simu_path, start, end, ye, comp)
+        simu = prepare(term, simu_path, start, end, ye, comp)
         print()
         print(f"Forecasting {term[0]}...")
-        jump(simu_path, term[0], steps)
+        jump(simu_path, term[0], steps, simu)
         print()
 
 

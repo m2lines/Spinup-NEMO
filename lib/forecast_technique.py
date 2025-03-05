@@ -1,3 +1,6 @@
+from skforecast.recursive import ForecasterRecursive
+from skforecast.preprocessing import RollingFeatures
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import (
@@ -7,6 +10,8 @@ from sklearn.gaussian_process.kernels import (
     WhiteKernel,
     DotProduct,
 )  # , Matérn
+import numpy as np
+import pandas as pd
 
 
 def init_technique():
@@ -35,29 +40,20 @@ def init_technique():
     )
 
 
-# All the tings a user may want to do with the data [Normalization/Data transformation, Feature Engineering, Dimonsionality reduction, Forecasting]
-# Define the Dimentionality Technique class and the Forecast Technique class somewhere in seperate files in the project
-# These should take in input in a standard form and return the output in a standard form
-# The content/techniques used and implementation is not important, just that the input and output is in a standard form
-# The classes should be able to be used in the following way:
-# - They can be imported and called in the forecast.py file
-# - The user only needs to change the two files to change the technique used and given that the input and output is in a standard form
-#   the user should not need to change the forecast.py file
-# If multiple techniques are used, the user should be able to choose which technique to use in the forecast.py file by way of changing a variable
-# This should later be done by way of a config file
-
-# Specifically the defining of the GP should not be done in the Prediction contructor
-
-# First refactor the forecast.py file to use the classes while still using PCA and the GP
-
-
 def apply_forecast(y_train, x_train, x_pred):
     # mean, std, y_train, y_test, x_train, x_pred = *dataain, x_pred = data
 
     gp = init_technique()
+    forecaster = ForecasterRecursive(
+        regressor=gp,
+        lags=29,
+        window_features=RollingFeatures(stats=["mean"], window_sizes=10),
+    )
+    forecaster.fit(pd.Series(y_train))
+    y_hat, y_hat_std = forecaster.predict(steps=30), np.asarray([1, 1, 1, 1, 1, 1])
 
-    gp.fit(x_train, y_train)
-    y_hat, y_hat_std = gp.predict(x_pred, return_std=True)
+    # gp.fit(x_train, y_train)
+    # y_hat, y_hat_std = gp.predict(x_pred, return_std=True)
 
     return y_hat, y_hat_std
 

@@ -312,6 +312,38 @@ class Simulation:
 
         return map_
 
+    def get_num_components(self):
+        return self.DimensionalityReduction.get_num_components()
+
+    ###################
+    #   Reconstruct   #
+    ###################
+
+    def reconstruct(
+        self,
+        predictions,
+        n,
+        info,
+        begin=0,
+    ):  # TODO: Generalise the reconstruct pca to reconstruct decomposition
+        """
+        Reconstruct the time series data from predictions.
+
+        Parameters:
+            predictions (DataFrame) : Forecasted values for each component.
+            n (int)                 : Number of components to consider for reconstruction.
+            begin (int, optional)   : Starting index for reconstruction. Defaults to 0.
+
+        Returns:
+            array: Reconstructed time series data.
+        """
+
+        self.int_mask, ts_array = self.DimensionalityReduction.reconstruct_predictions(
+            predictions, n, info, begin
+        )  # TODO: Call method on variable which contains the decomposition class
+
+        return ts_array
+
     ############################### NOT USED IN THE MAIN.PY ###############################
     def rmseOfPCA(self, n):  # TODO: Generalise the rmseOfPCA to rmseOfDecomposition
         reconstruction, rmse_values, rmse_map = self.DimensionalityReduction.rmse(n)
@@ -479,7 +511,7 @@ class Predictions:
                 std (float)  : Standard deviation of the training data.
                 y_train (numpy.array): Training data.
                 y_test  (numpy.array): Test data.
-                x_train (numpy.array): Training features.
+                x_train (numpy.array): Training features. Hmm, seems like this is just an index associated with the training data, rather than the actual features. TODO: Check this.
                 x_pred  (numpy.array): Prediction features.
         """
         x_train = np.linspace(0, 1, train_len).reshape(-1, 1)
@@ -592,10 +624,8 @@ class Predictions:
             array: Reconstructed time series data.
         """
 
-        self.int_mask, ts_array = (
-            DimensionalityReductionKernelPCA.reconstruct_predictions(
-                predictions, n, self.info, begin
-            )
+        self.int_mask, ts_array = DimensionalityReductionPCA.reconstruct_predictions(
+            predictions, n, self.info, begin
         )  # TODO: Call method on variable which contains the decomposition class
 
         return ts_array
