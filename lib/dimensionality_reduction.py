@@ -75,6 +75,7 @@ class DimensionalityReductionPCA(DimensionalityReduction):
             arr = np.array(
                 list(predictions.iloc[t, :n]) + [0] * (len(info["pca"].components_) - n)
             )
+            temp1 = info["pca"].inverse_transform(arr)
             map_[int_mask == 1] = info["pca"].inverse_transform(arr)
 
             map_[int_mask == 0] = np.nan
@@ -218,6 +219,8 @@ class DimensionalityReductionKernelPCA(DimensionalityReduction):
             # Reshape to 2D (sample, n_components) for inverse_transform
             map_ = np.zeros(info["shape"], dtype=np.float32)
 
+            # inverse transform data
+            temp1 = info["pca"].inverse_transform(arr.reshape(1, -1)).flatten()
             map_[int_mask == 1] = (
                 info["pca"].inverse_transform(arr.reshape(1, -1)).flatten()
             )

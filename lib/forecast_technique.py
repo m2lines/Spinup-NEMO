@@ -83,6 +83,23 @@ class GaussianProcessForecaster(BaseForecaster):
         """
         # mean, std, y_train, y_test, x_train, x_pred = *dataain, x_pred = data
 
+        #####################
+        gp = self.init_technique()
+
+        gp.fit(x_train, y_train)
+
+        y_hat, y_hat_std = gp.predict(x_pred, return_std=True)
+
+        return y_hat, y_hat_std
+
+
+class GaussianProcessRecursiveForecaster(GaussianProcessForecaster):
+    def init_technique(self):
+        return super().init_technique()
+
+    def apply_forecast(self, y_train, x_train, x_pred):
+        # mean, std, y_train, y_test, x_train, x_pred = *dataain, x_pred = data
+
         # Initialize the GP regressor
         gp = self.init_technique()
 

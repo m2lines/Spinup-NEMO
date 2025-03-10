@@ -58,7 +58,7 @@ def jump(simu_path, term, steps, simu):
         simu_path (str): path to the simulation
         term (str): term to forecast
         steps (int): number of years to forecast
-
+        simu (Simulation): simulation object
     Returns:
         None
 
