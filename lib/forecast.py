@@ -20,7 +20,10 @@ from sklearn.gaussian_process.kernels import (
 )  # , Matérn
 import pickle
 import warnings
-from forecast_technique import GaussianProcessForecaster
+from forecast_technique import (
+    GaussianProcessForecaster,
+    GaussianProcessRecursiveForecaster,
+)
 from dimensionality_reduction import (
     DimensionalityReductionPCA,
     DimensionalityReductionKernelPCA,
