@@ -25,7 +25,7 @@ class DimensionalityReduction(ABC):
         pass
 
     @abstractmethod
-    def rmse(self):
+    def error(self):
         pass
 
 
@@ -124,6 +124,9 @@ class DimensionalityReductionPCA(DimensionalityReduction):
         map_ = map_.reshape(self.shape)
         map_ = 2 * map_ * self.desc["std"] + self.desc["mean"]
         return map_
+
+    def error(self, n):
+        return self.rmse(n)
 
     def rmse(self, n):
         reconstruction = self.reconstruct_components(n)
@@ -273,6 +276,9 @@ class DimensionalityReductionKernelPCA(DimensionalityReduction):
         # Scale the component using the stored descriptor parameters
         map_ = 2 * map_ * self.desc["std"] + self.desc["mean"]
         return map_
+
+    def error(self, n):
+        return self.rmse(n)
 
     def rmse(self, n):
         """
