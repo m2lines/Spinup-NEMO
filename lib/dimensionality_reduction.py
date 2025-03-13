@@ -4,6 +4,7 @@ from sklearn.decomposition import (
     PCA,
     KernelPCA,
 )  # TODO: Import the general decomposition class
+import math
 
 
 class DimensionalityReduction(ABC):
@@ -212,7 +213,7 @@ class DimensionalityReductionKernelPCA(DimensionalityReduction):
         """
         rec = []
         int_mask = info["mask"].astype(np.int32).reshape(info["shape"])
-        # print(int_mask)
+
         for t in range(begin, len(predictions)):
             # Create an array for the t-th prediction;
             # pad with zeros for any missing components
@@ -224,6 +225,10 @@ class DimensionalityReductionKernelPCA(DimensionalityReduction):
 
             # inverse transform data
             temp1 = info["pca"].inverse_transform(arr.reshape(1, -1)).flatten()
+
+            # Check that the inverse transform has the correct number of data points
+            assert len(temp1) == math.prod(info["shape"])
+
             map_[int_mask == 1] = (
                 info["pca"].inverse_transform(arr.reshape(1, -1)).flatten()
             )
