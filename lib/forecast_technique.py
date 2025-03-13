@@ -89,7 +89,6 @@ class GaussianProcessForecaster(BaseForecaster):
         gp.fit(x_train, y_train)
 
         y_hat, y_hat_std = gp.predict(x_pred, return_std=True)
-
         return y_hat, y_hat_std
 
 

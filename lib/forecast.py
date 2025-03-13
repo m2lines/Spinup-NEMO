@@ -423,7 +423,7 @@ class Predictions:
             w (int)                       : Width for moving average and metrics calculation.
         """
         self.var = var
-        self.forecaster = GaussianProcessForecaster()
+        self.forecaster = GaussianProcessRecursiveForecaster()
         self.w = w
         self.data = data
         self.info = info
@@ -515,7 +515,11 @@ class Predictions:
         """
         x_train = np.linspace(0, 1, train_len).reshape(-1, 1)
         pas = x_train[1, 0] - x_train[0, 0]
-        x_pred = np.arange(0, (len(self) + steps) * pas, pas).reshape(-1, 1)
+        # x_pred = np.arange(0, (len(self) + steps) * pas, pas).reshape(-1, 1) #TODO: Check this len(self) + steps logic
+        x_pred = np.arange(0, steps * pas, pas).reshape(
+            -1, 1
+        )  # TODO: Check this len(self) + steps logic
+
         y_train = self.data[self.var + "-" + str(n)].iloc[:train_len].to_numpy()
         mean, std = np.nanmean(y_train), np.nanstd(y_train)
         y_train = (y_train - mean) / (2.0 * std)

@@ -82,7 +82,7 @@ def jump(simu_path, term, steps, simu):
 
     n = simu.get_num_components()
     print(f"Number of components: {n}")
-    predictions_zos = simu.reconstruct(y_hat, n, infos, begin=len(simu_ts))
+    predictions_zos = simu.reconstruct(y_hat, n, infos, begin=0)  # len(simu_ts))
 
     print(f"{term} predictions reconstructed")
 
