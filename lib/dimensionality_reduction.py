@@ -77,10 +77,13 @@ class DimensionalityReductionPCA(DimensionalityReduction):
                 list(predictions.iloc[t, :n]) + [0] * (len(info["pca"].components_) - n)
             )
             temp1 = info["pca"].inverse_transform(arr)
+            print("arr: ", arr)
+            print("temp1 shape: ", temp1.shape)
             map_[int_mask == 1] = info["pca"].inverse_transform(arr)
 
             map_[int_mask == 0] = np.nan
             rec.append(map_)
+            print(np.array(rec).shape)
         return int_mask, np.array(rec) * 2 * info["desc"]["std"] + info["desc"]["mean"]
 
     def reconstruct_components(self, n):
@@ -213,7 +216,7 @@ class DimensionalityReductionKernelPCA(DimensionalityReduction):
         """
         rec = []
         int_mask = info["mask"].astype(np.int32).reshape(info["shape"])
-
+        print(int_mask.shape)
         for t in range(begin, len(predictions)):
             # Create an array for the t-th prediction;
             # pad with zeros for any missing components
@@ -225,7 +228,8 @@ class DimensionalityReductionKernelPCA(DimensionalityReduction):
 
             # inverse transform data
             temp1 = info["pca"].inverse_transform(arr.reshape(1, -1)).flatten()
-
+            # print("Arr: ", arr)
+            # print("temp1 shape: ", temp1.shape)
             # Check that the inverse transform has the correct number of data points
             assert len(temp1) == math.prod(info["shape"])
 
@@ -234,7 +238,8 @@ class DimensionalityReductionKernelPCA(DimensionalityReduction):
             )
 
             map_[int_mask == 0] = np.nan
-            rec.append(map_[0])
+            rec.append(map_)
+            # print(np.array(rec).shape)
         # Scale the reconstruction back using provided descriptors
         return int_mask, np.array(rec) * 2 * info["desc"]["std"] + info["desc"]["mean"]
 
