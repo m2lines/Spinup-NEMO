@@ -135,6 +135,8 @@ NB : En amont code de Guillaume pour obtenir des moyennes annuelles
     ```
     Where 36 in the above corresponds to the number of MPI processes.
 
+    Note: Make sure to freshly build the environment in order to build and compile the tool `REBUILD_NEMO`.
+
 6.  In the directory which holds your NEMO data, create a new restart file by running `main_restart.py`:
       ```bash
         python main_restart.py
