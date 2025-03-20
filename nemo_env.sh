@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Source submit_run.sh to get the environment variables
+source /home/sg2147/Spinup-NEMO/submit_run.sh
+
 #SBATCH -A $PROJECT_ACCOUNT               # Project account for SLURM
 #SBATCH -p $PARTITION                     # Partition name (e.g., icelake)
 #SBATCH -N $NUM_NODES                     # Number of nodes
