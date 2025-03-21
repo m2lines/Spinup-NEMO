@@ -90,7 +90,15 @@ class Simulation:
     """
 
     def __init__(
-        self, path, term, start=0, end=None, comp=0.9, ye=True, ssca=False
+        self,
+        path,
+        term,
+        filename=None,
+        start=0,
+        end=None,
+        comp=0.9,
+        ye=True,
+        ssca=False,
     ):  # choose jobs 3 if 2D else 1
         """
         Initialize Simulation with specified parameters.
@@ -106,7 +114,7 @@ class Simulation:
         """
         self.path = path
         self.term = term
-        self.files = Simulation.getData(path, term)
+        self.files = Simulation.getData(path, term, filename)
         self.start = start
         self.end = end
         self.ye = ye
@@ -119,7 +127,7 @@ class Simulation:
 
     #### Load files and dimensions info ###
 
-    def getData(path, term):
+    def getData(path, term, filename):
         """
         Get the files related to the simulation in the right directory
 
@@ -135,7 +143,7 @@ class Simulation:
         """
         grid = []
         for file in sorted(os.listdir(path)):
-            if term[1] in file:  # add param!=""
+            if filename in file:  # add param!=""
                 grid.append(path + "/" + file)
         return grid
 
@@ -151,10 +159,10 @@ class Simulation:
         ]  # Seems that index at 0 is 'nav_lat' TODO: Investigate this
         self.y_size = array.sizes["y"]
         self.x_size = array.sizes["x"]
-        if "deptht" in array[self.term[0]].dims:
+        if "deptht" in array[self.term].dims:
             self.z_size = array.sizes["deptht"]
             self.shape = (self.z_size, self.y_size, self.x_size)
-        elif "olevel" in array[self.term[0]].dims:
+        elif "olevel" in array[self.term].dims:
             self.z_size = array.sizes["olevel"]
             self.shape = (self.z_size, self.y_size, self.x_size)
         else:
@@ -194,7 +202,7 @@ class Simulation:
         array = xr.open_dataset(
             file, decode_times=False, chunks={"time": 200, "x": 120}
         )
-        array = array[self.term[0]]
+        array = array[self.term]
         self.len = self.len + array.sizes[self.time_dim]
         # print(self.len)
         # if self.ye:
@@ -243,7 +251,7 @@ class Simulation:
         Parameters:
             array (xarray.Dataset): The last dataset containing simulation data in the simulation file.
         """
-        array = array[self.term[0]].values
+        array = array[self.term].values
         n = np.shape(array)[0] // 12 * 12
         array = array[-n:]
         ssca = np.array(array).reshape(
