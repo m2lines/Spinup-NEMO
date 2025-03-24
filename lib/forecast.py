@@ -20,6 +20,7 @@ from sklearn.gaussian_process.kernels import (
 )  # , Matérn
 import pickle
 import warnings
+import yaml
 from forecast_technique import (
     GaussianProcessForecaster,
     GaussianProcessRecursiveForecaster,
@@ -40,8 +41,13 @@ Dimensionality_reduction_techniques = {
     "DimensionalityReductionKernelPCA": DimensionalityReductionKernelPCA,
 }
 
-DR_technique = Dimensionality_reduction_techniques["DimensionalityReductionKernelPCA"]
-Forecast_technique = Forecast_techniques["GaussianProcessRecursiveForecaster"]
+# Load config
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+
+DR_technique = Dimensionality_reduction_techniques[config["DR_technique"][0]["name"]]
+Forecast_technique = Forecast_techniques[config["Forecast_technique"][0]["name"]]
 
 
 # file    #Select the file where the prepared simu was saved
