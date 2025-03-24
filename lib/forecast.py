@@ -31,6 +31,18 @@ from dimensionality_reduction import (
 
 warnings.filterwarnings("ignore")
 
+Forecast_techniques = {
+    "GaussianProcessForecaster": GaussianProcessForecaster,
+    "GaussianProcessRecursiveForecaster": GaussianProcessRecursiveForecaster,
+}
+Dimensionality_reduction_techniques = {
+    "DimensionalityReductionPCA": DimensionalityReductionPCA,
+    "DimensionalityReductionKernelPCA": DimensionalityReductionKernelPCA,
+}
+
+DR_technique = Dimensionality_reduction_techniques["DimensionalityReductionKernelPCA"]
+Forecast_technique = Forecast_techniques["GaussianProcessRecursiveForecaster"]
+
 
 # file    #Select the file where the prepared simu was saved
 # var     #Select the var you want to forecast
@@ -121,7 +133,7 @@ class Simulation:
         self.comp = comp
         self.len = 0
         self.desc = {}
-        self.DimensionalityReduction = DimensionalityReductionKernelPCA(comp)
+        self.DimensionalityReduction = DR_technique(comp)
         self.getAttributes()  # self time_dim, y_size, x_size,
         self.getSimu()  # self simu , desc {"mean","std","min","max"}
 
@@ -431,7 +443,7 @@ class Predictions:
             w (int)                       : Width for moving average and metrics calculation.
         """
         self.var = var
-        self.forecaster = GaussianProcessRecursiveForecaster()
+        self.forecaster = Forecast_technique()
         self.w = w
         self.data = data
         self.info = info
