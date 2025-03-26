@@ -21,11 +21,12 @@ from sklearn.gaussian_process.kernels import (
 import pickle
 import warnings
 import yaml
-from forecast_technique import (
+
+from lib.forecast_technique import (
     GaussianProcessForecaster,
     GaussianProcessRecursiveForecaster,
 )
-from dimensionality_reduction import (
+from lib.dimensionality_reduction import (
     DimensionalityReductionPCA,
     DimensionalityReductionKernelPCA,
 )
