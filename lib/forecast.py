@@ -375,8 +375,8 @@ class Simulation:
         return ts_array
 
     ############################### NOT USED IN THE MAIN.PY ###############################
-    def rmseOfPCA(self, n):  # TODO: Generalise the rmseOfPCA to rmseOfDecomposition
-        reconstruction, rmse_values, rmse_map = self.DimensionalityReduction.rmse(n)
+    def error(self, n):
+        reconstruction, rmse_values, rmse_map = self.DimensionalityReduction.error(n)
 
     #######################################################################################################
 
