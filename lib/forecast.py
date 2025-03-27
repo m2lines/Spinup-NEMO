@@ -47,8 +47,8 @@ with open("config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 
-DR_technique = Dimensionality_reduction_techniques[config["DR_technique"][0]["name"]]
-Forecast_technique = Forecast_techniques[config["Forecast_technique"][0]["name"]]
+DR_technique = Dimensionality_reduction_techniques[config["DR_technique"]["name"]]
+Forecast_technique = Forecast_techniques[config["Forecast_technique"]["name"]]
 
 
 # file    #Select the file where the prepared simu was saved
