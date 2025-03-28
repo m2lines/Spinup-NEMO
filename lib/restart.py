@@ -151,15 +151,13 @@ def load_predictions(restart, dirpath="/data/mtissot/simus_predicted"):
     ## Loading new SSH in directly affected variables
     ## (loading zos.npy, selecting last snapshot, then converting to fitting xarray.DataArray, and cleaning the nans)
     try:
-        # zos = np.load(dirpath + "/pred_zos.npy")[-1:]
         term = get_ocean_term("SSH")
         if term is not None:
             zos = np.load(dirpath + f"/{term}.npy")[-1:]
         sshn = xr.DataArray(zos)
 
         # # Check dimensions
-        # print(sshn.dims)  # Prints the dimension names
-        # print(sshn.shape) # Prints the size of each dimension
+
         restart["sshn"] = xr.DataArray(
             zos, dims=("time_counter", "y", "x"), name="sshn"
         ).fillna(0)
@@ -172,7 +170,6 @@ def load_predictions(restart, dirpath="/data/mtissot/simus_predicted"):
     ## (loading so.npy, selecting last snapshot, then converting to fitting xarray.DataArray, and cleaning the nans)
 
     try:
-        # so = np.load(dirpath + "/pred_so.npy")[-1:]
         term = get_ocean_term("Salinity")
         if term is not None:
             so = np.load(dirpath + f"/{term}.npy")[-1:]
@@ -188,7 +185,6 @@ def load_predictions(restart, dirpath="/data/mtissot/simus_predicted"):
     ## Loading new THETAO in directly affected variables
     ## (loading thetao.npy, selecting last snapshot, then converting to fitting xarray.DataArray, and cleaning the nans)
     try:
-        # thetao = np.load(dirpath + "/pred_thetao.npy")[-1:]
         term = get_ocean_term("Temperature")
         if term is not None:
             thetao = np.load(dirpath + f"/{term}.npy")[-1:]

@@ -6,7 +6,7 @@ import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.decomposition
-from sklearn.decomposition import PCA  # TODO: Import the general decomposition class
+from sklearn.decomposition import PCA
 import joblib
 from joblib import Parallel, delayed, parallel_backend
 from sklearn.preprocessing import StandardScaler
@@ -53,7 +53,7 @@ Forecast_technique = Forecast_techniques[config["Forecast_technique"]["name"]]
 
 # file    #Select the file where the prepared simu was saved
 # var     #Select the var you want to forecast
-def load_ts(file, var):  # TODO: Generalise the load_ts pca to load decomposition
+def load_ts(file, var):
     """
     Load time series data from the file where are saved the prepared simulations.
     This function is used the get the prepared data info in order to instantiate a prediction class
@@ -328,7 +328,7 @@ class Simulation:
         # self.components = pca.fit_transform(array_masked)
         # self.pca = pca
 
-    def get_component(self, n):  # TODO: Generalise the getPC to get_component
+    def get_component(self, n):
         """
         Get principal component map for the specified component.
 
@@ -355,7 +355,7 @@ class Simulation:
         n,
         info,
         begin=0,
-    ):  # TODO: Generalise the reconstruct pca to reconstruct decomposition
+    ):
         """
         Reconstruct the time series data from predictions.
 
@@ -370,7 +370,7 @@ class Simulation:
 
         self.int_mask, ts_array = self.DimensionalityReduction.reconstruct_predictions(
             predictions, n, info, begin
-        )  # TODO: Call method on variable which contains the decomposition class
+        )
 
         return ts_array
 
@@ -403,7 +403,7 @@ class Simulation:
         dico["shape"] = self.shape
         return dico
 
-    def save(self, file, term):  # TODO: Generalise the save pca to save decomposition
+    def save(self, file, term):
         """
         Save the simulation data and information to files.
 
@@ -639,9 +639,7 @@ class Predictions:
     #   Reconstruct   #
     ###################
 
-    def reconstruct(
-        self, predictions, n, begin=0
-    ):  # TODO: Generalise the reconstruct pca to reconstruct decomposition
+    def reconstruct(self, predictions, n, begin=0):
         """
         Reconstruct the time series data from predictions.
 
@@ -656,7 +654,7 @@ class Predictions:
 
         self.int_mask, ts_array = DimensionalityReductionPCA.reconstruct_predictions(
             predictions, n, self.info, begin
-        )  # TODO: Call method on variable which contains the decomposition class
+        )
 
         return ts_array
 
