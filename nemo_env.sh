@@ -1,4 +1,5 @@
-less 
+#!/bin/bash
+
 #SBATCH -A ICCS-SL2-CPU               # Project account for SLURM
 #SBATCH -p icelake                     # Partition name in cluster (e.g., icelake)
 #SBATCH -N 1                              # Number of nodes
