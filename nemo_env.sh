@@ -1,5 +1,4 @@
-#!/bin/bash
-
+less 
 #SBATCH -A ICCS-SL2-CPU               # Project account for SLURM
 #SBATCH -p icelake                     # Partition name in cluster (e.g., icelake)
 #SBATCH -N 1                              # Number of nodes
@@ -44,3 +43,8 @@ fi
 mkdir -p "$OUTPUT_DIR"
 
 echo "******Created new output folder!******"
+
+# =======================================
+# DETERMINE RUN TYPE (New Run or Re-run)
+# =======================================
+mpirun -np 36 nemo   ### mpi is a communication protocol to run code in parallel.
