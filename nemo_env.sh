@@ -44,11 +44,3 @@ fi
 mkdir -p "$OUTPUT_DIR"
 
 echo "******Created new output folder!******"
-
-
-# # ======================
-# # RUN NEMO SIMULATION
-# # ======================
-# mpirun -np "$NUM_TASKS" "$NEMO_EXEC" > "$OUTPUT_DIR/nemo_output.log" 2>&1
-
-# echo "******NEMO run completed!******"
