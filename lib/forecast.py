@@ -161,6 +161,7 @@ class Simulation:
             list: List of files related to the simulation.
         """
         grid = []
+        print(os.listdir(path))
         for file in sorted(os.listdir(path)):
             if filename in file:  # add param!=""
                 grid.append(path + "/" + file)
@@ -168,7 +169,7 @@ class Simulation:
 
     def getAttributes(self):
         """
-        Get attributes of the simulation data.
+        Get attributes of the simulation data
         """
         array = xr.open_dataset(
             self.files[-1], decode_times=False, chunks={"time": 200, "x": 120}
@@ -205,6 +206,7 @@ class Simulation:
             "max": np.nanmax(array),
         }
         self.simulation = array
+
         del array
 
     def loadFile(self, file):
@@ -315,8 +317,11 @@ class Simulation:
 
     def decompose(self):
         """
-        Apply Principal Component Analysis (PCA) to the simulation data. TODO: Generalise the applyPCA to apply decomposition
+        Apply Principal Component Analysis (PCA) to the simulation data.
         """
+
+        self.DimensionalityReduction.set_from_simulation(self)
+
         self.components, self.pca, self.bool_mask = (
             self.DimensionalityReduction.decompose(self.simulation, self.len)
         )
@@ -338,7 +343,7 @@ class Simulation:
         Returns:
             (numpy.ndarray): The principal component map.
         """
-        map_ = self.DimensionalityReduction.get_component(n, self.bool_mask)
+        map_ = self.DimensionalityReduction.get_component(n)
 
         return map_
 
@@ -377,6 +382,7 @@ class Simulation:
     ############################### NOT USED IN THE MAIN.PY ###############################
     def error(self, n):
         reconstruction, rmse_values, rmse_map = self.DimensionalityReduction.error(n)
+        return reconstruction, rmse_values, rmse_map
 
     #######################################################################################################
 
@@ -537,15 +543,15 @@ class Predictions:
                 std (float)  : Standard deviation of the training data.
                 y_train (numpy.array): Training data.
                 y_test  (numpy.array): Test data.
-                x_train (numpy.array): Training features. Hmm, seems like this is just an index associated with the training data, rather than the actual features. TODO: Check this.
+                x_train (numpy.array): Training features.
                 x_pred  (numpy.array): Prediction features.
         """
         x_train = np.linspace(0, 1, train_len).reshape(-1, 1)
         pas = x_train[1, 0] - x_train[0, 0]
         # x_pred = np.arange(0, (len(self) + steps) * pas, pas).reshape(-1, 1) #TODO: Check this len(self) + steps logic
-        x_pred = np.arange(0, steps * pas, pas).reshape(
-            -1, 1
-        )  # TODO: Check this len(self) + steps logic
+        x_pred = np.arange(1 + pas, 1 + steps * pas, pas).reshape(-1, 1)
+        print(len(x_pred))
+        print(x_pred)
 
         y_train = self.data[self.var + "-" + str(n)].iloc[:train_len].to_numpy()
         mean, std = np.nanmean(y_train), np.nanstd(y_train)
@@ -651,7 +657,7 @@ class Predictions:
         Returns:
             array: Reconstructed time series data.
         """
-
+        # TODO: Change to DR_technique
         self.int_mask, ts_array = DimensionalityReductionPCA.reconstruct_predictions(
             predictions, n, self.info, begin
         )
