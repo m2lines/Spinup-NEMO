@@ -51,7 +51,7 @@ Dimensionality_reduction_techniques = {
 }
 
 
-with open(path_to_nemo_directory / "config.yaml", "r") as f:
+with open(path_to_nemo_directory / "techniques_config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 
