@@ -1,5 +1,7 @@
 import os
+import sys
 import copy
+from pathlib import Path
 import random
 import numpy as np
 import xarray as xr
@@ -31,6 +33,12 @@ from lib.dimensionality_reduction import (
     DimensionalityReductionKernelPCA,
 )
 
+
+sys.path.insert(0, "../")
+
+path_to_nemo_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+path_to_nemo_directory = Path(path_to_nemo_directory)
+
 warnings.filterwarnings("ignore")
 
 Forecast_techniques = {
@@ -42,8 +50,8 @@ Dimensionality_reduction_techniques = {
     "DimensionalityReductionKernelPCA": DimensionalityReductionKernelPCA,
 }
 
-# Load config
-with open("config.yaml", "r") as f:
+
+with open(path_to_nemo_directory / "config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 
@@ -161,7 +169,6 @@ class Simulation:
             list: List of files related to the simulation.
         """
         grid = []
-        print(os.listdir(path))
         for file in sorted(os.listdir(path)):
             if filename in file:  # add param!=""
                 grid.append(path + "/" + file)
@@ -550,8 +557,6 @@ class Predictions:
         pas = x_train[1, 0] - x_train[0, 0]
         # x_pred = np.arange(0, (len(self) + steps) * pas, pas).reshape(-1, 1) #TODO: Check this len(self) + steps logic
         x_pred = np.arange(1 + pas, 1 + steps * pas, pas).reshape(-1, 1)
-        print(len(x_pred))
-        print(x_pred)
 
         y_train = self.data[self.var + "-" + str(n)].iloc[:train_len].to_numpy()
         mean, std = np.nanmean(y_train), np.nanstd(y_train)
