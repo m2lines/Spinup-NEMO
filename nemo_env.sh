@@ -22,6 +22,18 @@ module load boost/1.85.0/gcc/zouxm6hy
 
 echo "******Modules loaded successfully!******"
 
+
+# =============================
+# SET DYNAMIC LIBRARY PATHS
+# =============================
+export BASE_DIR="/rds/project/rds-5mCMIDBOkPU/ma595/nemo/NEMO/trunk"
+
+export CPATH="$BASE_DIR/inc:$CPATH"
+export LD_LIBRARY_PATH="$BASE_DIR/lib:$LD_LIBRARY_PATH"
+
+echo "******Environment paths set successfully!******"
+
+
 # =============================
 # MOVE TO WORKING DIRECTORY
 # =============================
@@ -48,4 +60,4 @@ echo "******Created new output folder!******"
 # =======================================
 # DETERMINE RUN TYPE (New Run or Re-run)
 # =======================================
-mpirun -np 36 nemo   ### mpi is a communication protocol to run code in parallel.
+mpirun -np 36 "$NEMO_EXEC"   ### mpi is a communication protocol to run code in parallel.
