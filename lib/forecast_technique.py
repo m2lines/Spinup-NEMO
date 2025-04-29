@@ -54,16 +54,7 @@ class DirectForecaster(BaseForecaster):
         """
         self.regressor.fit(x_train, y_train)
 
-        # Check if the regressor supports returning standard deviation
-        if (
-            hasattr(self.regressor, "predict")
-            and "return_std" in self.regressor.predict.__code__.co_varnames
-        ):
-            y_hat, y_hat_std = self.regressor.predict(x_pred, return_std=True)
-            return y_hat, y_hat_std
-        else:
-            y_hat = self.regressor.predict(x_pred)
-            return y_hat, None
+        y_hat, y_hat_std = self.regressor.predict(x_pred, return_std=True)
 
 
 class RecursiveForecaster(BaseForecaster):
