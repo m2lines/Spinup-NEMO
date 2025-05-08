@@ -146,3 +146,53 @@ def test_getSimu(setup_simulation_class):
     assert np.isclose(simu.desc["max"], expected_max), (
         f"Max mismatch: {simu.desc['max']} != {expected_max}"
     )
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        pytest.param(
+            ("toce", "DINO_1y_grid_T.nc"),
+            marks=pytest.mark.xfail(reason="time_counter atlast index not first index"),
+        ),
+        pytest.param(
+            ("soce", "DINO_1y_grid_T.nc"),
+            marks=pytest.mark.xfail(
+                reason="time_counter at last index not first index"
+            ),
+        ),
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),
+    ],
+    indirect=True,
+)
+def test_loadFile(setup_simulation_class):
+    """
+    Test that loadFile returns an xarray.DataArray with the correct variable and updates self.len appropriately.
+    """
+    simu = setup_simulation_class
+
+    # Use the first file in the simulation's file list
+    file_path = simu.files[0]
+
+    # Reset length to zero to isolate this test
+    simu.len = 0
+
+    # Call loadFile
+    data_array = simu.loadFile(file_path)
+
+    # Ensure the return is a loaded xarray.DataArray
+    assert isinstance(data_array, xr.DataArray), (
+        "loadFile should return an xarray.DataArray"
+    )
+
+    # The DataArray name should match the simulation term
+    assert data_array.name == simu.term[0], (
+        f"DataArray name {data_array.name} does not match term {simu.term[0]}"
+    )
+
+    # After loading, self.len should equal the size along the time dimension
+    assert simu.time_dim == "time_counter"
+    expected_len = 50
+    assert simu.len == expected_len, (
+        f"Length after loadFile ({simu.len}) does not match expected ({expected_len})"
+    )
