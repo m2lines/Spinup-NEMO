@@ -196,3 +196,93 @@ def test_loadFile(setup_simulation_class):
     assert simu.len == expected_len, (
         f"Length after loadFile ({simu.len}) does not match expected ({expected_len})"
     )
+
+
+@pytest.fixture()
+def dummy_simu():
+    """
+    Create a bare Simulation instance without invoking __init__, to test prepare().
+    """
+    simu = Simulation.__new__(Simulation)
+    return simu
+
+
+def test_prepare_slices_based_on_start_end(dummy_simu):
+    """
+    Check data is sliced based on both start and end.
+    """
+    # Create a simple DataArray of length 10
+    data = xr.DataArray(np.arange(10, dtype=float), dims=("time",))
+    dummy_simu.simulation = data
+    dummy_simu.start = 3
+    dummy_simu.end = 8
+    dummy_simu.desc = {}
+
+    dummy_simu.prepare(stand=False)
+
+    # After slicing, simulation should be numpy array [3,4,5,6,7]
+    expected = np.arange(3, 8, dtype=float)
+    assert isinstance(dummy_simu.simulation, np.ndarray)
+    assert dummy_simu.len == expected.shape[0]
+    np.testing.assert_array_equal(dummy_simu.simulation, expected)
+
+
+def test_prepare_slices_start_specified_end_none(dummy_simu):
+    """
+    Check data is sliced using only start if end is not specified.
+    """
+    data = xr.DataArray(np.arange(10, dtype=float), dims=("time",))
+    dummy_simu.simulation = data
+    dummy_simu.start = 4
+    dummy_simu.end = None
+    dummy_simu.desc = {}
+
+    dummy_simu.prepare(stand=False)
+
+    # After slicing, simulation should be numpy array [4,5,6,7,8,9]
+    expected = np.arange(4, 10, dtype=float)
+    assert dummy_simu.len == expected.shape[0]
+    np.testing.assert_array_equal(dummy_simu.simulation, expected)
+
+
+def test_prepare_standardization_applied(dummy_simu):
+    """
+    Check results are standardized when stand=True.
+    """
+    data = xr.DataArray([0.0, 2.0, 4.0, 6.0], dims=("time",))
+    dummy_simu.simulation = data
+    dummy_simu.start = 0
+    dummy_simu.end = None
+    dummy_simu.desc = {}
+
+    dummy_simu.prepare(stand=True)
+
+    # Manually compute expected standardized values: (x - mean) / (2*std)
+    mean = np.nanmean(data)
+    std = np.nanstd(data)
+    expected = ((data - mean) / (2 * std)).values
+    np.testing.assert_allclose(dummy_simu.simulation, expected)
+
+
+def test_prepare_updates_desc_and_simulation(dummy_simu):
+    """
+    Check self.simulation is updated with its values and desc dict holds correct stats.
+    """
+    data = xr.DataArray([1.0, 2.0, 3.0, 5.0], dims=("time",))
+    dummy_simu.simulation = data
+    dummy_simu.start = 1
+    dummy_simu.end = 4
+    dummy_simu.desc = {}
+
+    dummy_simu.prepare(stand=False)
+
+    # After slicing, raw numpy array should match values[1:4]
+    sliced = data.values[1:4]
+    assert isinstance(dummy_simu.simulation, np.ndarray)
+    np.testing.assert_array_equal(dummy_simu.simulation, sliced)
+
+    # Check descriptive statistics in desc
+    assert np.isclose(dummy_simu.desc["mean"], np.nanmean(sliced))
+    assert np.isclose(dummy_simu.desc["std"], np.nanstd(sliced))
+    assert np.isclose(dummy_simu.desc["min"], np.nanmin(sliced))
+    assert np.isclose(dummy_simu.desc["max"], np.nanmax(sliced))
