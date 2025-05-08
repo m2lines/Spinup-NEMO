@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.fixture()
-def setup_simulation_class():
+def setup_simulation_class(request):
     """
     Fixture to set up the simulation class
     """
@@ -13,7 +13,8 @@ def setup_simulation_class():
     end = 50
     ye = True
     comp = 0.9
-    term = ("toce", "DINO_1y_grid_T.nc")
+    term = request.param
+    # ("toce", "DINO_1y_grid_T.nc")
 
     simu = Simulation(
         path=path,
