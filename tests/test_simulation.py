@@ -1,6 +1,8 @@
 import os
 import pytest
 from lib.forecast import Simulation
+import numpy as np
+import xarray as xr
 
 
 @pytest.mark.parametrize(
@@ -89,3 +91,58 @@ def test_getAttributes(setup_simulation_class, term, shape):
     assert simulation.shape == shape
     assert simulation.term == term
     assert simulation.time_dim == "time_counter"
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("toce", "DINO_1y_grid_T.nc"),
+        ("soce", "DINO_1y_grid_T.nc"),
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),
+    ],
+    indirect=True,
+)
+def test_getSimu(setup_simulation_class):
+    """
+    Test that getSimu correctly sets the simulation DataArray and descriptive stats.
+    """
+    simu = setup_simulation_class
+
+    # Check that 'simulation' attribute exists and is an xarray DataArray
+    assert hasattr(simu, "simulation"), (
+        "Simulation instance should have 'simulation' attribute"
+    )
+    assert isinstance(simu.simulation, xr.DataArray), (
+        "'simulation' should be a xarray.DataArray"
+    )
+    # Check DataArray name matches variable name
+    assert simu.simulation.name == simu.term[0], (
+        f"DataArray name {simu.simulation.name} does not match term {simu.term[0]}"
+    )
+
+    # Extract data values for manual computation
+    data = simu.simulation.values
+
+    # Compute expected descriptive statistics
+    expected_mean = np.nanmean(data)
+    expected_std = np.nanstd(data)
+    expected_min = np.nanmin(data)
+    expected_max = np.nanmax(data)
+
+    # Check that desc dictionary contains correct keys and values
+    for key in ["mean", "std", "min", "max"]:
+        assert key in simu.desc, f"'{key}' should be in simu.desc"
+
+    # Compare actual vs expected values
+    assert np.isclose(simu.desc["mean"], expected_mean), (
+        f"Mean mismatch: {simu.desc['mean']} != {expected_mean}"
+    )
+    assert np.isclose(simu.desc["std"], expected_std), (
+        f"Std mismatch: {simu.desc['std']} != {expected_std}"
+    )
+    assert np.isclose(simu.desc["min"], expected_min), (
+        f"Min mismatch: {simu.desc['min']} != {expected_min}"
+    )
+    assert np.isclose(simu.desc["max"], expected_max), (
+        f"Max mismatch: {simu.desc['max']} != {expected_max}"
+    )
