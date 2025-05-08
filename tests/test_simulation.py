@@ -286,3 +286,45 @@ def test_prepare_updates_desc_and_simulation(dummy_simu):
     assert np.isclose(dummy_simu.desc["std"], np.nanstd(sliced))
     assert np.isclose(dummy_simu.desc["min"], np.nanmin(sliced))
     assert np.isclose(dummy_simu.desc["max"], np.nanmax(sliced))
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("toce", "DINO_1y_grid_T.nc"),
+        ("soce", "DINO_1y_grid_T.nc"),
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),
+    ],
+    indirect=True,
+)
+def test_standardize(setup_simulation_class):
+    """
+    Test that calling standardize correctly transforms self.simulation using the stored mean and std,
+    and that the descriptive statistics in self.desc remain unchanged.
+    """
+    simu = setup_simulation_class
+    simu.len = 0
+    # Load simulation data and compute descriptive stats
+    simu.getSimu()
+
+    # Copy original data and desc
+    original_data = simu.simulation.copy().values
+    original_mean = simu.desc["mean"]
+    original_std = simu.desc["std"]
+
+    # Apply standardization
+    simu.standardize()
+
+    # The simulation attribute should remain an xarray.DataArray
+    assert isinstance(simu.simulation, xr.DataArray), (
+        "simulation should be an xarray.DataArray after standardize"
+    )
+
+    # # Flatten arrays for comparison
+    standardized_data = simu.simulation.values
+    expected = (original_data - original_mean) / (2 * original_std)
+
+    # # Check that the data was standardized correctly (accounting for NaNs)
+    assert np.allclose(standardized_data, expected, equal_nan=True), (
+        "standardize did not correctly transform simulation data"
+    )
