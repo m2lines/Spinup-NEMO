@@ -46,8 +46,8 @@ Forecast_techniques = {
     "GaussianProcessRecursiveForecaster": GaussianProcessRecursiveForecaster,
 }
 Dimensionality_reduction_techniques = {
-    "DimensionalityReductionPCA": DimensionalityReductionPCA,
-    "DimensionalityReductionKernelPCA": DimensionalityReductionKernelPCA,
+    "PCA": DimensionalityReductionPCA,
+    "KernelPCA": DimensionalityReductionKernelPCA,
 }
 
 
