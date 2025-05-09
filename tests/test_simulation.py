@@ -3,6 +3,7 @@ import pytest
 from lib.forecast import Simulation
 import numpy as np
 import xarray as xr
+from sklearn.decomposition import PCA
 
 
 @pytest.mark.parametrize(
@@ -328,3 +329,38 @@ def test_standardize(setup_simulation_class):
     assert np.allclose(standardized_data, expected, equal_nan=True), (
         "standardize did not correctly transform simulation data"
     )
+
+
+def create_simulation(data, comp):
+    """
+    Helper to create a Simulation instance without running __init__,
+    setting up only the attributes needed for applyPCA.
+    """
+    sim = Simulation.__new__(Simulation)
+    sim.simulation = data
+    sim.len = data.shape[0]
+    sim.comp = comp
+    return sim
+
+
+def test_applyPCA_finite_dummy_data():
+    """
+    Test that applyPCA produces components with correct dimensions
+    when all data entries are finite.
+    """
+    rng = np.random.RandomState(0)
+    data = rng.rand(100, 20)
+    sim = create_simulation(data, comp=0.9)
+    sim.applyPCA()
+
+    # Check shape of components: (time_steps, n_components)
+    components = sim.components
+    assert components.shape[0] == data.shape[0]
+
+    n_components = components.shape[1]
+    # Number of components should be between 1 and number of features
+    assert 1 <= n_components <= data.shape[1]
+
+    # PCA object should be set and have matching component matrix
+    assert isinstance(sim.pca, PCA)
+    assert sim.pca.components_.shape == (n_components, data.shape[1])
