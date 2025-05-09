@@ -55,8 +55,19 @@ with open(path_to_nemo_directory / "techniques_config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 
-DR_technique = Dimensionality_reduction_techniques[config["DR_technique"]["name"]]
-Forecast_technique = Forecast_techniques[config["Forecast_technique"]["name"]]
+if config["DR_technique"]["name"] not in Dimensionality_reduction_techniques:
+    raise KeyError(
+        f"DR_technique {config['DR_technique']['name']} not found. Have you specified a valid dimensionality reduction technique in the config file?"
+    )
+else:
+    DR_technique = Dimensionality_reduction_techniques[config["DR_technique"]["name"]]
+
+if config["Forecast_technique"]["name"] not in Forecast_techniques:
+    raise KeyError(
+        f"Forecast_technique {config['Forecast_technique']['name']} not found. Have you specified a valid forecasting technique in the config file?"
+    )
+else:
+    Forecast_technique = Forecast_techniques[config["Forecast_technique"]["name"]]
 
 
 # file    #Select the file where the prepared simu was saved
@@ -123,7 +134,7 @@ class Simulation:
         filename=None,
         start=0,
         end=None,
-        comp=0.9,
+        comp=1,
         ye=True,
         ssca=False,
     ):  # choose jobs 3 if 2D else 1
