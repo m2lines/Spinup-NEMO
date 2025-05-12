@@ -364,3 +364,29 @@ def test_applyPCA_finite_dummy_data():
     # PCA object should be set and have matching component matrix
     assert isinstance(sim.pca, PCA)
     assert sim.pca.components_.shape == (n_components, data.shape[1])
+
+
+def test_applyPCA_masks_nans():
+    """
+    Test that applyPCA correctly masks features with NaNs in the first time slice.
+    """
+    rng = np.random.RandomState(1)
+    data = rng.rand(50, 10)
+    nan_indices = [2, 7]
+    data[0, nan_indices] = np.nan
+    sim = create_simulation(data, comp=None)
+    sim.applyPCA()
+
+    mask = sim.bool_mask
+
+    # Mask length equals number of features
+    assert mask.shape == (data.shape[1],)
+    # Indices with NaNs should be masked False
+    expected_mask = [False if i in nan_indices else True for i in range(10)]
+
+    assert np.array_equal(mask, expected_mask)
+
+    # PCA components second dimension equals number of unmasked features
+    assert sim.pca.components_.shape[1] == mask.sum()
+    # Components shape reflects time steps and selected components
+    assert sim.components.shape == (data.shape[0], sim.pca.n_components_)
