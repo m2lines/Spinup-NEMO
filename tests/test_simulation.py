@@ -390,3 +390,38 @@ def test_applyPCA_masks_nans():
     assert sim.pca.components_.shape[1] == mask.sum()
     # Components shape reflects time steps and selected components
     assert sim.components.shape == (data.shape[0], sim.pca.n_components_)
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("toce", "DINO_1y_grid_T.nc"),
+        ("soce", "DINO_1y_grid_T.nc"),
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),
+    ],
+    indirect=True,
+)
+def test_applyPCA_real_data(setup_simulation_class):
+    """
+    Test applyPCA when using Simulation instantiated with real data.
+    """
+    sim = setup_simulation_class
+    # Prepare and standardize the data
+    sim.prepare(stand=False)
+    # After prepare, simulation attribute should be a NumPy array
+    assert isinstance(sim.simulation, np.ndarray)
+    initial_shape = sim.simulation.shape
+
+    sim.applyPCA()
+    components = sim.components
+    # Components first dimension equals time length
+    assert components.shape[0] == sim.len
+    # Components second dimension equals number of PCA components
+    assert components.shape[1] == sim.pca.n_components_
+
+    # Boolean mask length equals number of features
+    feature_count = np.prod(initial_shape[1:])
+    assert sim.bool_mask.shape == (feature_count,)
+
+    # PCA components shape matches feature count
+    assert sim.pca.components_.shape == (sim.pca.n_components_, feature_count)
