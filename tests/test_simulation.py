@@ -471,3 +471,46 @@ def test_getPC_real_data(setup_simulation_class):
         expected_flat[mask] = 2 * comp_vals * std + mean
 
         assert np.allclose(flat_map, expected_flat, equal_nan=True)
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("soce", "DINO_1y_grid_T.nc"),  # 3D case (z,y,x)
+        ("toce", "DINO_1y_grid_T.nc"),  # 3D case (z,y,x)
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),  # 2D case (y,x)
+    ],
+    indirect=True,
+)
+def test_reconstruct_shape_and_mask_real_data(setup_simulation_class):
+    """
+    For several choices of n, reconstruct should:
+      - return a numpy array of shape (time, *shape)
+      - preserve the nan‐mask at masked gridpoints
+      - produce only finite values at unmasked positions
+    """
+    sim = setup_simulation_class
+
+    # set up the PCA on the real data
+    sim.prepare(stand=False)
+    sim.applyPCA()
+
+    # Check for a few n values: 1, all components, and beyond
+    ns = [1, sim.pca.n_components_]
+    for n in ns:
+        rec = sim.reconstruct(n)
+        # array and shape
+        assert isinstance(rec, np.ndarray)
+        assert rec.shape == (sim.len, *sim.shape)
+        # int_mask must have been updated to match shape
+        int_mask = sim.int_mask
+        assert int_mask.shape == sim.shape
+
+        # for each time‐slice, masked positions are NaN, unmasked finite
+        flat_mask = int_mask.ravel()
+        for t in range(rec.shape[0]):
+            flat_rec = rec[t].ravel()
+            # masked (0) → NaN
+            assert np.all(np.isnan(flat_rec[flat_mask == 0]))
+            # unmasked (1) → finite
+            assert np.all(np.isfinite(flat_rec[flat_mask == 1]))
