@@ -514,3 +514,36 @@ def test_reconstruct_shape_and_mask_real_data(setup_simulation_class):
             assert np.all(np.isnan(flat_rec[flat_mask == 0]))
             # unmasked (1) → finite
             assert np.all(np.isfinite(flat_rec[flat_mask == 1]))
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("soce", "DINO_1y_grid_T.nc"),
+        ("toce", "DINO_1y_grid_T.nc"),
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),
+    ],
+    indirect=True,
+)
+def test_reconstruct_full_components_recovers_original_data(setup_simulation_class):
+    """
+    When n equals the total number of PCA components, reconstruct should
+    recover the original simulation data (within numerical tolerance).
+    """
+    sim = setup_simulation_class
+
+    sim.prepare(stand=False)
+    sim.comp = None
+    sim.applyPCA()
+
+    # reconstruct using all components
+    rec_all = sim.reconstruct(sim.pca.n_components_)
+
+    # original simulation was stored (raw values, pre‐PCA)
+    orig = sim.simulation
+    assert isinstance(orig, np.ndarray)
+    # shapes match
+    assert rec_all.shape == orig.shape
+
+    # values match up to numerical tolerance
+    np.testing.assert_allclose(rec_all, orig, rtol=1e-5, atol=3e-4, equal_nan=True)
