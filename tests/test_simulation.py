@@ -425,3 +425,49 @@ def test_applyPCA_real_data(setup_simulation_class):
 
     # PCA components shape matches feature count
     assert sim.pca.components_.shape == (sim.pca.n_components_, feature_count)
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("soce", "DINO_1y_grid_T.nc"),  # 3D case (z,y,x)
+        ("toce", "DINO_1y_grid_T.nc"),  # 3D case (z,y,x)
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),  # 2D case (y,x)
+    ],
+    indirect=True,
+)
+def test_getPC_real_data(setup_simulation_class):
+    """
+    For each valid PC index, getPC should return a numpy array of the correct shape,
+    preserve the NaN‐mask, and match the formula: map = 2 * component * std + mean.
+    """
+    sim = setup_simulation_class
+
+    # prepare real slice and compute PCA
+    sim.prepare(stand=False)
+    sim.applyPCA()
+
+    std = sim.desc["std"]
+    mean = sim.desc["mean"]
+    mask = sim.bool_mask  # 1D boolean mask over flattened features
+    shape = sim.shape  # e.g. (z,y,x) or (y,x)
+
+    # Flattened mask length must be product of shape
+    assert mask.shape == (np.prod(shape),)
+
+    # test every component
+    for n in range(sim.pca.n_components_):
+        pc_map = sim.getPC(n)
+        # returns a numpy array
+        assert isinstance(pc_map, np.ndarray)
+        # check correct spatial shape
+        assert pc_map.shape == shape
+
+        flat_map = pc_map.ravel()
+        comp_vals = sim.pca.components_[n]
+
+        # Build expected flattened map
+        expected_flat = np.full(mask.shape, np.nan, dtype=float)
+        expected_flat[mask] = 2 * comp_vals * std + mean
+
+        assert np.allclose(flat_map, expected_flat, equal_nan=True)
