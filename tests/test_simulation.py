@@ -547,3 +547,88 @@ def test_reconstruct_full_components_recovers_original_data(setup_simulation_cla
 
     # values match up to numerical tolerance
     np.testing.assert_allclose(rec_all, orig, rtol=1e-5, atol=3e-4, equal_nan=True)
+
+
+@pytest.fixture
+def dummy_sim_array():
+    """
+    Fixture providing a simple 3-time-step, 2x2 spatial array simulation.
+    """
+    sim = Simulation.__new__(Simulation)
+    # Create a 3x2x2 array with increasing values
+    sim.simulation = np.array(
+        [
+            [[1.0, 2.0], [3.0, 4.0]],
+            [[2.0, 3.0], [4.0, 5.0]],
+            [[3.0, 4.0], [5.0, 6.0]],
+        ]
+    )
+    sim.len = sim.simulation.shape[0]
+    return sim
+
+
+def test_rmseMap_zero_for_identical(dummy_sim_array):
+    """
+    rmseMap should return zeros when reconstruction matches the simulation exactly.
+    """
+    sim = dummy_sim_array
+    # Reconstruction identical to the truth
+    reconstruction = sim.simulation.copy()
+    rmse_map = sim.rmseMap(reconstruction)
+    expected = np.zeros(sim.simulation.shape[1:])
+
+    # Verify return type and shape
+    assert isinstance(rmse_map, np.ndarray)
+    assert rmse_map.shape == expected.shape
+    # All values should be zero
+    assert np.allclose(rmse_map, expected)
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("toce", "DINO_1y_grid_T.nc"),  # 3D data (time, z, y, x)
+        ("soce", "DINO_1y_grid_T.nc"),  # 3D data (time, z, y, x)
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),  # 2D data (time, y, x)
+    ],
+    indirect=True,
+)
+def test_rmseMap_real_data_full_components_zero(setup_simulation_class):
+    """
+    rmseMap should return zeros for all unmasked positions when reconstructing
+    with the full set of PCA components, since full reconstruction recovers the
+    original simulation data for real datasets.
+    """
+    sim = setup_simulation_class
+    # Prepare without standardization to retain raw values
+    sim.prepare(stand=False)
+    # Ensure simulation data is a NumPy array
+    assert isinstance(sim.simulation, np.ndarray)
+
+    # Use all available components to reconstruct full data
+    sim.comp = None
+    sim.applyPCA()
+    rec_all = sim.reconstruct(sim.pca.n_components_)
+
+    # Compute RMSE map
+    rmse_map = sim.rmseMap(rec_all)
+
+    # Check return type and shape
+    assert isinstance(rmse_map, np.ndarray)
+
+    assert rmse_map.shape == sim.shape, (
+        f"Expected rmse_map shape {sim.shape}, got {rmse_map.shape}"
+    )
+
+    # Boolean mask of valid (unmasked) positions, reshaped
+    mask = sim.bool_mask.reshape(sim.shape)
+
+    # Unmasked positions (True) should have zero RMSE within tolerance
+    assert np.allclose(rmse_map[mask], 0.0, atol=1e-3), (
+        "Non-zero RMSE found at unmasked positions for full reconstruction"
+    )
+
+    # Masked positions (False) should remain NaN
+    assert np.all(np.isnan(rmse_map[~mask])), (
+        "Expected NaN at masked positions in rmse_map"
+    )
