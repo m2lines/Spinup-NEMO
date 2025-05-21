@@ -679,3 +679,58 @@ def test_rmseMap_real_data_with_limited_components_positive(setup_simulation_cla
     assert np.all(np.isnan(rmse_map[~mask])), (
         "Expected NaN at masked positions in rmse_map"
     )
+
+
+def test_rmseValues_zero_for_identical(dummy_sim_array):
+    """
+    rmseValues should return zeros when the reconstruction matches the simulation exactly.
+    """
+    reconstruction = dummy_sim_array.simulation.copy()
+    rmse_values = dummy_sim_array.rmseValues(reconstruction)
+
+    # Verify return type and shape
+    assert isinstance(rmse_values, np.ndarray)
+    assert rmse_values.shape == (dummy_sim_array.len,)
+
+    # All values should be zero
+    assert np.allclose(rmse_values, 0)
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("toce", "DINO_1y_grid_T.nc"),  # 3D data (time, z, y, x)
+        ("soce", "DINO_1y_grid_T.nc"),  # 3D data (time, z, y, x)
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),  # 2D data (time, y, x)
+    ],
+    indirect=True,
+)
+def test_rmseValues_real_data_full_components_zero(setup_simulation_class):
+    """
+    rmseValues should be zero for each time (and depth, if present) when using
+    the full set of PCA components, since full reconstruction recovers the original data.
+    """
+    sim = setup_simulation_class
+
+    # Prepare raw numpy simulation and compute PCA for full reconstruction
+    sim.prepare(stand=False)
+    sim.comp = None
+    sim.applyPCA()
+    rec_all = sim.reconstruct(sim.pca.n_components_)
+
+    # Compute RMSE values
+    rmse_values = sim.rmseValues(rec_all)
+
+    # Verify return type
+    assert isinstance(rmse_values, np.ndarray)
+
+    # Check the correct output shape
+    if sim.z_size is not None:
+        # For 3D data, shape should be (time, depth)
+        assert rmse_values.shape == (sim.len, sim.z_size)
+    else:
+        # For 2D data, shape should be (time,)
+        assert rmse_values.shape == (sim.len,)
+
+    # All RMSE values should be effectively zero
+    assert np.allclose(rmse_values, 0, atol=1e-3)
