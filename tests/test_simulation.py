@@ -632,3 +632,50 @@ def test_rmseMap_real_data_full_components_zero(setup_simulation_class):
     assert np.all(np.isnan(rmse_map[~mask])), (
         "Expected NaN at masked positions in rmse_map"
     )
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("toce", "DINO_1y_grid_T.nc"),  # 3D data (time, z, y, x)
+        ("soce", "DINO_1y_grid_T.nc"),  # 3D data (time, z, y, x)
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),  # 2D data (time, y, x)
+    ],
+    indirect=True,
+)
+def test_rmseMap_real_data_with_limited_components_positive(setup_simulation_class):
+    """
+    rmseMap should return non-negative finite values at unmasked positions
+    and NaN at masked positions when reconstructing using only the first principal
+    component on real data.
+    """
+    sim = setup_simulation_class
+    sim.prepare(stand=False)
+
+    # Apply PCA retaining the default variance fraction (or set comp explicitly)
+    sim.applyPCA()
+    # Reconstruct using only the first principal component
+    rec_one = sim.reconstruct(1)
+    rmse_map = sim.rmseMap(rec_one)
+
+    # Check return type and shape
+    assert isinstance(rmse_map, np.ndarray)
+    assert rmse_map.shape == sim.shape, (
+        f"Expected rmse_map shape {sim.shape}, got {rmse_map.shape}"
+    )
+
+    mask = sim.bool_mask.reshape(sim.shape)
+
+    # Unmasked positions: RMSE should be >= 0 and at least one strictly > 0
+    unmasked_vals = rmse_map[mask]
+    assert np.all(unmasked_vals >= 0), (
+        "Negative RMSE values found at unmasked positions"
+    )
+    assert np.any(unmasked_vals > 0), (
+        "All RMSE values are zero at unmasked positions for limited-component reconstruction"
+    )
+
+    # Masked positions should remain NaN
+    assert np.all(np.isnan(rmse_map[~mask])), (
+        "Expected NaN at masked positions in rmse_map"
+    )
