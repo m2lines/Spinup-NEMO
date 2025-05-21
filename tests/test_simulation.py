@@ -734,3 +734,75 @@ def test_rmseValues_real_data_full_components_zero(setup_simulation_class):
 
     # All RMSE values should be effectively zero
     assert np.allclose(rmse_values, 0, atol=1e-3)
+
+
+@pytest.mark.parametrize(
+    "setup_simulation_class",
+    [
+        ("toce", "DINO_1y_grid_T.nc"),
+        ("soce", "DINO_1y_grid_T.nc"),
+        ("ssh", "DINO_1m_To_1y_grid_T.nc"),
+    ],
+    indirect=True,
+)
+def test_rmseOfPCA_real_full_zero(setup_simulation_class):
+    """
+    Full PCA reconstruction should give zero RMSE values and map on real data.
+    """
+    sim = setup_simulation_class
+    sim.comp = None
+    sim.prepare(stand=False)
+    sim.applyPCA()
+    # Use all components for full reconstruction
+    n_comp = sim.pca.n_components_
+    rec, rmse_values, rmse_map = sim.rmseOfPCA(n_comp)
+
+    # RMSE values zeros
+    if sim.z_size is not None:
+        assert rmse_values.shape == (sim.len, sim.z_size)
+    else:
+        assert rmse_values.shape == (sim.len,)
+    assert np.allclose(rmse_values, 0, atol=1e-3)
+
+    # RMSE map zeros
+    if sim.z_size is not None:
+        expected_map_shape = (sim.z_size, sim.y_size, sim.x_size)
+    else:
+        expected_map_shape = (sim.y_size, sim.x_size)
+    assert rmse_map.shape == expected_map_shape
+    assert np.allclose(rmse_map, 0, atol=1e-3)
+
+
+@pytest.fixture
+def dummy_sim_pca():
+    """
+    Dummy simulation to test scaling behavior of rmseOfPCA with constant data.
+    """
+    c = 2.0
+    sim = Simulation.__new__(Simulation)
+    # Constant simulation: 4 time steps, 2x2 grid all value c
+    sim.simulation = np.full((4, 2, 2), fill_value=c)
+    sim.len = sim.simulation.shape[0]
+    # Set std=1 for simple scaling
+    sim.desc = {"std": 1.0, "mean": 0.0}
+    # Reconstruction is zero array, so raw RMSE = c
+    sim.reconstruct = lambda n: np.zeros_like(sim.simulation)
+    return sim
+
+
+def test_rmseOfPCA_scaling_constant(dummy_sim_pca):
+    """
+    rmseOfPCA should scale raw RMSE by 2*std.
+    """
+    rec, rmse_values, rmse_map = dummy_sim_pca.rmseOfPCA(1)
+
+    # Raw RMSE per time step = sqrt(mean((c)^2)) = c
+    # After scaling by 2*std => expected = 2*c
+    expected = 2 * dummy_sim_pca.desc["std"] * dummy_sim_pca.simulation[0, 0, 0]
+
+    # Check rmse_values
+    assert np.allclose(rmse_values, expected)
+
+    # Check rmse_map across spatial grid
+    assert rmse_map.shape == dummy_sim_pca.simulation.shape[1:]
+    assert np.allclose(rmse_map, np.full(dummy_sim_pca.simulation.shape[1:], expected))
